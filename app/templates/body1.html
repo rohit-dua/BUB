@@ -1,0 +1,57 @@
+      <form method="POST" action="index.cgi" role="form" class="form-horizontal">
+        <fieldset>
+
+          <legend>Upload File from Libraries</legend>
+
+          <!-- Drop-Down: LIBRARY -->
+          <div class="form-group">
+            <label class="col-md-2 control-label" for="library"></label>
+            <div class="col-md-4">
+              <select id="library" name="library" class="form-control">
+                <option value="gb">Google-Books</option>
+                <option value="#2">Library#2</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Text input: ID/URL-->
+          <div class="form-group {{'has-error' if _errorNo == 1 else ''}}" >
+            <label class="col-md-2 control-label" for="Id"></label>  
+            <div class="col-md-8">
+              <input id="Id" name="Id" placeholder="ID/URL of the file" class="form-control input-md" required="" type="text" maxlength="150" value = "{{_id if _id else ''}}"> 
+            </div>
+          </div>
+
+          <!-- Appended Input: COMMONSNAME-->
+          <div class="form-group {{'has-error' if _errorNo == 2 else ''}}">
+            <label class="col-md-2 control-label" for="commonsName"></label>
+            <div class="col-md-8">
+              <div class="input-group">
+                <input id="commonsName" name="commonsName" class="form-control" placeholder="Filename for Commons" required="" type="text" maxlength="40" value = "{{_commonsName if _commonsName else ''}}">
+                <span class="input-group-addon">.djvu</span>
+              </div>
+    
+            </div>
+          </div>
+          <!-- Text input: EMAIL-->
+          <div class="form-group {{'has-error' if _errorNo == 4 else ''}}">
+            <label class="col-md-2 control-label" for="email"></label>  
+            <div class="col-md-8">
+              <input id="email" name="email" placeholder="Email" class="form-control input-md" required="" type="text" maxlength="40" value = "{{_email if _email else ''}}">
+            </div>
+          </div>
+
+          <!-- Button -->
+          <div class="form-group">
+            <label class="col-md-2 control-label" for="upload"></label>
+            <div class="col-md-8">
+              <button id="upload" name="upload" type="submit" class="btn btn-block btn-primary"><span class="glyphicon glyphicon-upload"></span> Upload</button>
+            </div>
+          </div>
+          
+        </fieldset>
+      </form>
+		</div>
+	</div>
+</body>
+</html>
