@@ -1,0 +1,12 @@
+LIBRARY-ID                MODULE-NAME(without .py)           LIBRARY-NAME
+gb                        gb                                 Google-Books
+
+
+#library                 #library_module                   #library-xyz
+
+
+#end          
+# For new library, add the following details above(seperate by spaces):
+# LIBRARY-ID: The same ID used on /app/templates/body1.html.
+# MODULE-NAME: Corresponding name of the module located in /digi-lib
+# LIBRARY-NAME: Name of the library
