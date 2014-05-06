@@ -1,0 +1,1088 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Release notes &mdash; Psycopg 2.5.2 documentation</title>
+    
+    <link rel="stylesheet" href="_static/psycopg.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2.5.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Psycopg 2.5.2 documentation" href="index.html" />
+    <link rel="prev" title="Frequently Asked Questions" href="faq.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="faq.html" title="Frequently Asked Questions"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Psycopg 2.5.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="release-notes">
+<h1>Release notes<a class="headerlink" href="#release-notes" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="current-release">
+<h2>Current release<a class="headerlink" href="#current-release" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="what-s-new-in-psycopg-2-5-2">
+<h3>What&#8217;s new in psycopg 2.5.2<a class="headerlink" href="#what-s-new-in-psycopg-2-5-2" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Fixed segfault pickling the exception raised on connection error
+(<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/170">ticket #170</a>).</li>
+<li>Meaningful connection errors report a meaningful message, thanks to
+Alexey Borzenkov (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/173">ticket #173</a>).</li>
+<li>Manually creating <tt class="xref py py-obj docutils literal"><span class="pre">lobject</span></tt> with the wrong parameter doesn&#8217;t segfault
+(<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/187">ticket #187</a>).</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-2-5-1">
+<h3>What&#8217;s new in psycopg 2.5.1<a class="headerlink" href="#what-s-new-in-psycopg-2-5-1" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Fixed build on Solaris 10 and 11 where the round() function is already
+declared (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/146">ticket #146</a>).</li>
+<li>Fixed comparison of <tt class="xref py py-obj docutils literal"><span class="pre">Range</span></tt> with non-range objects (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/164">ticket #164</a>).
+Thanks to Chris Withers for the patch.</li>
+<li>Fixed double-free on connection dealloc (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/166">ticket #166</a>). Thanks to
+Gangadharan S.A. for the report and fix suggestion.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="what-s-new-in-psycopg-2-5">
+<h2>What&#8217;s new in psycopg 2.5<a class="headerlink" href="#what-s-new-in-psycopg-2-5" title="Permalink to this headline">¶</a></h2>
+<p>New features:</p>
+<ul class="simple">
+<li>Added <a class="reference internal" href="extras.html#adapt-json"><em>JSON adaptation</em></a>.</li>
+<li>Added <a class="reference internal" href="extras.html#adapt-range"><em>support for PostgreSQL 9.2 range types</em></a>.</li>
+<li><a class="reference internal" href="connection.html#connection" title="connection"><tt class="xref py py-obj docutils literal"><span class="pre">connection</span></tt></a> and <a class="reference internal" href="cursor.html#cursor" title="cursor"><tt class="xref py py-obj docutils literal"><span class="pre">cursor</span></tt></a> objects can be used in <tt class="docutils literal"><span class="pre">with</span></tt> statements
+as context managers as specified by recent <a class="reference external" href="http://www.python.org/dev/peps/pep-0249/">DB API 2.0</a> extension.</li>
+<li>Added <a class="reference internal" href="extensions.html#psycopg2.extensions.Diagnostics" title="psycopg2.extensions.Diagnostics"><tt class="xref py py-obj docutils literal"><span class="pre">Diagnostics</span></tt></a> object to get extended info
+from a database error.  Many thanks to Matthew Woodcraft for the
+implementation (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/149">ticket #149</a>).</li>
+<li>Added <a class="reference internal" href="connection.html#connection.cursor_factory" title="connection.cursor_factory"><tt class="xref py py-obj docutils literal"><span class="pre">connection.cursor_factory</span></tt></a> attribute to customize the default
+object returned by <a class="reference internal" href="connection.html#connection.cursor" title="connection.cursor"><tt class="xref py py-obj docutils literal"><span class="pre">cursor()</span></tt></a>.</li>
+<li>Added support for backward scrollable cursors. Thanks to Jon Nelson
+for the initial patch (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/108">ticket #108</a>).</li>
+<li>Added a simple way to <a class="reference internal" href="extras.html#adapt-composite"><em>customize casting of composite types</em></a> into Python objects other than namedtuples.
+Many thanks to Ronan Dunklau and Tobias Oberstein for the feature
+development.</li>
+<li><a class="reference internal" href="connection.html#connection.reset" title="connection.reset"><tt class="xref py py-obj docutils literal"><span class="pre">connection.reset()</span></tt></a> implemented using <tt class="sql docutils literal"><span class="pre">DISCARD</span> <span class="pre">ALL</span></tt> on server
+versions supporting it.</li>
+</ul>
+<p>Bug fixes:</p>
+<ul class="simple">
+<li>Properly cleanup memory of broken connections (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/148">ticket #148</a>).</li>
+<li>Fixed bad interaction of <tt class="docutils literal"><span class="pre">setup.py</span></tt> with other dependencies in
+Distribute projects on Python 3 (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/153">ticket #153</a>).</li>
+</ul>
+<p>Other changes:</p>
+<ul class="simple">
+<li>Added support for Python 3.3.</li>
+<li>Dropped support for Python 2.4. Please use Psycopg 2.4.x if you need it.</li>
+<li><a class="reference internal" href="errorcodes.html#module-psycopg2.errorcodes" title="psycopg2.errorcodes"><tt class="xref py py-obj docutils literal"><span class="pre">errorcodes</span></tt></a> map updated to PostgreSQL 9.2.</li>
+<li>Dropped Zope adapter from source repository. ZPsycopgDA now has its own
+project at &lt;<a class="reference external" href="http://github.com/psycopg/ZPsycopgDA">http://github.com/psycopg/ZPsycopgDA</a>&gt;.</li>
+</ul>
+<div class="section" id="what-s-new-in-psycopg-2-4-6">
+<h3>What&#8217;s new in psycopg 2.4.6<a class="headerlink" href="#what-s-new-in-psycopg-2-4-6" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Fixed &#8216;cursor()&#8217; arguments propagation in connection subclasses
+and overriding of the &#8216;cursor_factory&#8217; argument.  Thanks to
+Corry Haines for the report and the initial patch (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/105">ticket #105</a>).</li>
+<li>Dropped GIL release during string adaptation around a function call
+invoking a Python API function, which could cause interpreter crash.
+Thanks to Manu Cupcic for the report (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/110">ticket #110</a>).</li>
+<li>Close a green connection if there is an error in the callback.
+Maybe a harsh solution but it leaves the program responsive
+(<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/113">ticket #113</a>).</li>
+<li>&#8216;register_hstore()&#8217;, &#8216;register_composite()&#8217;, &#8216;tpc_recover()&#8217; work with
+RealDictConnection and Cursor (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/114">ticket #114</a>).</li>
+<li>Fixed broken pool for Zope and connections re-init across ZSQL methods
+in the same request (tickets #123, #125, #142).</li>
+<li>connect() raises an exception instead of swallowing keyword arguments
+when a connection string is specified as well (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/131">ticket #131</a>).</li>
+<li>Discard any result produced by &#8216;executemany()&#8217; (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/133">ticket #133</a>).</li>
+<li>Fixed pickling of FixedOffsetTimezone objects (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/135">ticket #135</a>).</li>
+<li>Release the GIL around PQgetResult calls after COPY (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/140">ticket #140</a>).</li>
+<li>Fixed empty strings handling in composite caster (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/141">ticket #141</a>).</li>
+<li>Fixed pickling of DictRow and RealDictRow objects.</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-2-4-5">
+<h3>What&#8217;s new in psycopg 2.4.5<a class="headerlink" href="#what-s-new-in-psycopg-2-4-5" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>The close() methods on connections and cursors don&#8217;t raise exceptions
+if called on already closed objects.</li>
+<li>Fixed fetchmany() with no argument in cursor subclasses
+(<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/84">ticket #84</a>).</li>
+<li>Use lo_creat() instead of lo_create() when possible for better
+interaction with pgpool-II (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/88">ticket #88</a>).</li>
+<li>Error and its subclasses are picklable, useful for multiprocessing
+interaction (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/90">ticket #90</a>).</li>
+<li>Better efficiency and formatting of timezone offset objects thanks
+to Menno Smits (tickets #94, #95).</li>
+<li>Fixed &#8216;rownumber&#8217; during iteration on cursor subclasses.
+Regression introduced in 2.4.4 (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/100">ticket #100</a>).</li>
+<li>Added support for &#8216;inet&#8217; arrays.</li>
+<li>Fixed &#8216;commit()&#8217; concurrency problem (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/103">ticket #103</a>).</li>
+<li>Codebase cleaned up using the GCC Python plugin&#8217;s static analysis
+tool, which has revealed several unchecked return values, possible
+NULL dereferences, reference counting problems. Many thanks to David
+Malcolm for the useful tool and the assistance provided using it.</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-2-4-4">
+<h3>What&#8217;s new in psycopg 2.4.4<a class="headerlink" href="#what-s-new-in-psycopg-2-4-4" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>&#8216;register_composite()&#8217; also works with the types implicitly defined
+after a table row, not only with the ones created by &#8216;CREATE TYPE&#8217;.</li>
+<li>Values for the isolation level symbolic constants restored to what
+they were before release 2.4.2 to avoid breaking apps using the
+values instead of the constants.</li>
+<li>Named DictCursor/RealDictCursor honour itersize (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/80">ticket #80</a>).</li>
+<li>Fixed rollback on error on Zope (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/73">ticket #73</a>).</li>
+<li>Raise &#8216;DatabaseError&#8217; instead of &#8216;Error&#8217; with empty libpq errors,
+consistently with other disconnection-related errors: regression
+introduced in release 2.4.1 (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/82">ticket #82</a>).</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-2-4-3">
+<h3>What&#8217;s new in psycopg 2.4.3<a class="headerlink" href="#what-s-new-in-psycopg-2-4-3" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>connect() supports all the keyword arguments supported by the
+database</li>
+<li>Added &#8216;new_array_type()&#8217; function for easy creation of array
+typecasters.</li>
+<li>Added support for arrays of hstores and composite types (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/66">ticket #66</a>).</li>
+<li>Fixed segfault in case of transaction started with connection lost
+(and possibly other events).</li>
+<li>Fixed adaptation of Decimal type in sub-interpreters, such as in
+certain mod_wsgi configurations (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/52">ticket #52</a>).</li>
+<li>Rollback connections in transaction or in error before putting them
+back into a pool. Also discard broken connections (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/62">ticket #62</a>).</li>
+<li>Lazy import of the slow uuid module, thanks to Marko Kreen.</li>
+<li>Fixed NamedTupleCursor.executemany() (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/65">ticket #65</a>).</li>
+<li>Fixed &#8211;static-libpq setup option (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/64">ticket #64</a>).</li>
+<li>Fixed interaction between RealDictCursor and named cursors
+(<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/67">ticket #67</a>).</li>
+<li>Dropped limit on the columns length in COPY operations (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/68">ticket #68</a>).</li>
+<li>Fixed reference leak with arguments referenced more than once
+in queries (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/81">ticket #81</a>).</li>
+<li>Fixed typecasting of arrays containing consecutive backslashes.</li>
+<li>&#8216;errorcodes&#8217; map updated to PostgreSQL 9.1.</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-2-4-2">
+<h3>What&#8217;s new in psycopg 2.4.2<a class="headerlink" href="#what-s-new-in-psycopg-2-4-2" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Added &#8216;set_session()&#8217; method and &#8216;autocommit&#8217; property to the
+connection. Added support for read-only sessions and, for PostgreSQL
+9.1, for the &#8220;repeatable read&#8221; isolation level and the &#8220;deferrable&#8221;
+transaction property.</li>
+<li>Psycopg doesn&#8217;t execute queries at connection time to find the
+default isolation level.</li>
+<li>Fixed bug with multithread code potentially causing loss of sync
+with the server communication or lock of the client (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/55">ticket #55</a>).</li>
+<li>Don&#8217;t fail import if mx.DateTime module can&#8217;t be found, even if its
+support was built (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/53">ticket #53</a>).</li>
+<li>Fixed escape for negative numbers prefixed by minus operator
+(<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/57">ticket #57</a>).</li>
+<li>Fixed refcount issue during copy.  Reported and fixed by Dave
+Malcolm (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/58">ticket #58</a>, Red Hat Bug 711095).</li>
+<li>Trying to execute concurrent operations on the same connection
+through concurrent green thread results in an error instead of a
+deadlock.</li>
+<li>Fixed detection of pg_config on Window. Report and fix, plus some
+long needed setup.py cleanup by Steve Lacy: thanks!</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-2-4-1">
+<h3>What&#8217;s new in psycopg 2.4.1<a class="headerlink" href="#what-s-new-in-psycopg-2-4-1" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Use own parser for bytea output, not requiring anymore the libpq 9.0
+to parse the hex format.</li>
+<li>Don&#8217;t fail connection if the client encoding is a non-normalized
+variant. Issue reported by Peter Eisentraut.</li>
+<li>Correctly detect an empty query sent to the backend (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/46">ticket #46</a>).</li>
+<li>Fixed a SystemError clobbering libpq errors raised without SQLSTATE.
+Bug vivisectioned by Eric Snow.</li>
+<li>Fixed interaction between NamedTuple and server-side cursors.</li>
+<li>Allow to specify &#8211;static-libpq on setup.py command line instead of
+just in &#8216;setup.cfg&#8217;. Patch provided by Matthew Ryan (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/48">ticket #48</a>).</li>
+</ul>
+</div>
+</div>
+<div class="section" id="what-s-new-in-psycopg-2-4">
+<h2>What&#8217;s new in psycopg 2.4<a class="headerlink" href="#what-s-new-in-psycopg-2-4" title="Permalink to this headline">¶</a></h2>
+<p>New features and changes:</p>
+<ul class="simple">
+<li>Added support for Python 3.1 and 3.2. The conversion has also
+brought several improvements:<ul>
+<li>Added &#8216;b&#8217; and &#8216;t&#8217; mode to large objects: write can deal with both
+bytes strings and unicode; read can return either bytes strings
+or decoded unicode.</li>
+<li>COPY sends Unicode data to files implementing &#8216;io.TextIOBase&#8217;.</li>
+<li>Improved PostgreSQL-Python encodings mapping.</li>
+<li>Added a few missing encodings: EUC_CN, EUC_JIS_2004, ISO885910,
+ISO885916, LATIN10, SHIFT_JIS_2004.</li>
+<li>Dropped repeated dictionary lookups with unicode query/parameters.</li>
+</ul>
+</li>
+<li>Improvements to the named cursors:<ul>
+<li>More efficient iteration on named cursors, fetching &#8216;itersize&#8217;
+records at time from the backend.</li>
+<li>The named cursors name can be an invalid identifier.</li>
+</ul>
+</li>
+<li>Improvements in data handling:<ul>
+<li>Added &#8216;register_composite()&#8217; function to cast PostgreSQL
+composite types into Python tuples/namedtuples.</li>
+<li>Adapt types &#8216;bytearray&#8217; (from Python 2.6), &#8216;memoryview&#8217; (from
+Python 2.7) and other objects implementing the &#8220;Revised Buffer
+Protocol&#8221; to &#8216;bytea&#8217; data type.</li>
+<li>The &#8216;hstore&#8217; adapter can work even when the data type is not
+installed in the &#8216;public&#8217; namespace.</li>
+<li>Raise a clean exception instead of returning bad data when
+receiving bytea in &#8216;hex&#8217; format and the client libpq can&#8217;t parse
+them.</li>
+<li>Empty lists correctly roundtrip Python -&gt; PostgreSQL -&gt; Python.</li>
+</ul>
+</li>
+<li>Other changes:<ul>
+<li>&#8216;cursor.description&#8217; is provided as named tuples if available.</li>
+<li>The build script refuses to guess values if &#8216;pg_config&#8217; is not
+found.</li>
+<li>Connections and cursors are weakly referenceable.</li>
+</ul>
+</li>
+</ul>
+<p>Bug fixes:</p>
+<ul class="simple">
+<li>Fixed adaptation of None in composite types (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/26">ticket #26</a>). Bug
+report by Karsten Hilbert.</li>
+<li>Fixed several reference leaks in less common code paths.</li>
+<li>Fixed segfault when a large object is closed and its connection no
+more available.</li>
+<li>Added missing icon to ZPsycopgDA package, not available in Zope
+2.12.9 (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/30">ticket #30</a>). Bug report and patch by Pumukel.</li>
+<li>Fixed conversion of negative infinity (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/40">ticket #40</a>). Bug report and
+patch by Marti Raudsepp.</li>
+</ul>
+<div class="section" id="what-s-new-in-psycopg-2-3-2">
+<h3>What&#8217;s new in psycopg 2.3.2<a class="headerlink" href="#what-s-new-in-psycopg-2-3-2" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Fixed segfault with middleware not passing DateStyle to the client
+(<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/24">ticket #24</a>). Bug report and patch by Marti Raudsepp.</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-2-3-1">
+<h3>What&#8217;s new in psycopg 2.3.1<a class="headerlink" href="#what-s-new-in-psycopg-2-3-1" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Fixed build problem on CentOS 5.5 x86_64 (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/23">ticket #23</a>).</li>
+</ul>
+</div>
+</div>
+<div class="section" id="what-s-new-in-psycopg-2-3">
+<h2>What&#8217;s new in psycopg 2.3<a class="headerlink" href="#what-s-new-in-psycopg-2-3" title="Permalink to this headline">¶</a></h2>
+<p>psycopg 2.3 aims to expose some new features introduced in PostgreSQL 9.0.</p>
+<p>Main new features:</p>
+<ul class="simple">
+<li><a class="reference external" href="http://docs.python.org/3.2/library/stdtypes.html#dict" title="(in Python v3.2)"><tt class="xref py py-obj docutils literal"><span class="pre">dict</span></tt></a> to <tt class="xref py py-obj docutils literal"><span class="pre">hstore</span></tt> adapter and <tt class="xref py py-obj docutils literal"><span class="pre">hstore</span></tt> to <a class="reference external" href="http://docs.python.org/3.2/library/stdtypes.html#dict" title="(in Python v3.2)"><tt class="xref py py-obj docutils literal"><span class="pre">dict</span></tt></a> typecaster, using both
+9.0 and pre-9.0 syntax.</li>
+<li>Two-phase commit protocol support as per DBAPI specification.</li>
+<li>Support for payload in notifications received from the backend.</li>
+<li><tt class="xref py py-obj docutils literal"><span class="pre">namedtuple</span></tt>-returning cursor.</li>
+<li>Query execution cancel.</li>
+</ul>
+<p>Other features and changes:</p>
+<ul class="simple">
+<li>Dropped support for protocol 2: Psycopg 2.3 can only connect to PostgreSQL
+servers with version at least 7.4.</li>
+<li>Don&#8217;t issue a query at every connection to detect the client encoding
+and to set the datestyle to ISO if it is already compatible with what
+expected.</li>
+<li><tt class="xref py py-obj docutils literal"><span class="pre">mogrify()</span></tt> now supports unicode queries.</li>
+<li>Subclasses of a type that can be adapted are adapted as the superclass.</li>
+<li><tt class="xref py py-obj docutils literal"><span class="pre">errorcodes</span></tt> knows a couple of new codes introduced in PostgreSQL 9.0.</li>
+<li>Dropped deprecated Psycopg &#8220;own quoting&#8221;.</li>
+<li>Never issue a ROLLBACK on close/GC. This behaviour was introduced as a bug
+in release 2.2, but trying to send a command while being destroyed has been
+considered not safe.</li>
+</ul>
+<p>Bug fixes:</p>
+<ul class="simple">
+<li>Fixed use of <tt class="xref py py-obj docutils literal"><span class="pre">PQfreemem</span></tt> instead of <tt class="xref py py-obj docutils literal"><span class="pre">free</span></tt> in binary typecaster.</li>
+<li>Fixed access to freed memory in <tt class="xref py py-obj docutils literal"><span class="pre">conn_get_isolation_level()</span></tt>.</li>
+<li>Fixed crash during Decimal adaptation with a few 2.5.x Python versions
+(<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/7">ticket #7</a>).</li>
+<li>Fixed notices order (<a class="reference external" href="http://psycopg.lighthouseapp.com/projects/62710/tickets/9">ticket #9</a>).</li>
+</ul>
+<div class="section" id="what-s-new-in-psycopg-2-2-2">
+<h3>What&#8217;s new in psycopg 2.2.2<a class="headerlink" href="#what-s-new-in-psycopg-2-2-2" title="Permalink to this headline">¶</a></h3>
+<p>Bux fixes:</p>
+<ul class="simple">
+<li>the call to logging.basicConfig() in pool.py has been dropped: it was
+messing with some projects using logging (and a library should not
+initialize the logging system anyway.)</li>
+<li>psycopg now correctly handles time zones with seconds in the UTC offset.
+The old register_tstz_w_secs() function is deprecated and will raise a
+warning if called.</li>
+<li>Exceptions raised by the column iterator are propagated.</li>
+<li>Exceptions raised by executemany() iterators are propagated.</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-2-2-1">
+<h3>What&#8217;s new in psycopg 2.2.1<a class="headerlink" href="#what-s-new-in-psycopg-2-2-1" title="Permalink to this headline">¶</a></h3>
+<p>Bux fixes:</p>
+<ul class="simple">
+<li>psycopg now builds again on MS Windows.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="what-s-new-in-psycopg-2-2">
+<h2>What&#8217;s new in psycopg 2.2<a class="headerlink" href="#what-s-new-in-psycopg-2-2" title="Permalink to this headline">¶</a></h2>
+<p>This is the first release of the new 2.2 series, supporting not just one but
+two different ways of executing asynchronous queries, thanks to Jan and Daniele
+(with a little help from me and others, but they did 99% of the work so they
+deserve their names here in the news.)</p>
+<p>psycopg now supports both classic select() loops and &#8220;green&#8221; coroutine
+libraries. It is all in the documentation, so just point your browser to
+doc/html/advanced.html.</p>
+<p>Other new features:</p>
+<ul class="simple">
+<li>truncate() method for lobjects.</li>
+<li>COPY functions are now a little bit faster.</li>
+<li>All builtin PostgreSQL to Python typecasters are now available from the
+psycopg2.extensions module.</li>
+<li>Notifications from the backend are now available right after the execute()
+call (before client code needed to call isbusy() to ensure NOTIFY
+reception.)</li>
+<li>Better timezone support.</li>
+<li>Lots of documentation updates.</li>
+</ul>
+<p>Bug fixes:</p>
+<ul class="simple">
+<li>Fixed some gc/refcounting problems.</li>
+<li>Fixed reference leak in NOTIFY reception.</li>
+<li>Fixed problem with PostgreSQL not casting string literals to the correct
+types in some situations: psycopg now add an explicit cast to dates, times
+and bytea representations.</li>
+<li>Fixed TimestampFromTicks() and TimeFromTicks() for seconds &gt;= 59.5.</li>
+<li>Fixed spurious exception raised when calling C typecasters from Python
+ones.</li>
+</ul>
+<div class="section" id="what-s-new-in-psycopg-2-0-14">
+<h3>What&#8217;s new in psycopg 2.0.14<a class="headerlink" href="#what-s-new-in-psycopg-2-0-14" title="Permalink to this headline">¶</a></h3>
+<p>New features:</p>
+<ul class="simple">
+<li>Support for adapting tuples to PostgreSQL arrays is now enabled by
+default and does not require importing psycopg2.extensions anymore.</li>
+<li>&#8220;can&#8217;t adapt&#8221; error message now includes full type information.</li>
+<li>Thank to Daniele Varrazzo (piro) psycopg2&#8217;s source package now includes
+full documentation in HTML and plain text format.</li>
+</ul>
+<p>Bug fixes:</p>
+<ul class="simple">
+<li>No loss of precision when using floats anymore.</li>
+<li>decimal.Decimal &#8220;nan&#8221; and &#8220;infinity&#8221; correctly converted to PostgreSQL
+numeric NaN values (note that PostgreSQL numeric type does not support
+infinity but just NaNs.)</li>
+<li>psycopg2.extensions now includes Binary.</li>
+</ul>
+<p>It seems we&#8217;re good citizens of the free software ecosystem and that big
+big big companies and people ranting on the pgsql-hackers mailing list
+we&#8217;ll now not dislike us. <em>g</em> (See LICENSE file for the details.)</p>
+</div>
+<div class="section" id="what-s-new-in-psycopg-2-0-13">
+<h3>What&#8217;s new in psycopg 2.0.13<a class="headerlink" href="#what-s-new-in-psycopg-2-0-13" title="Permalink to this headline">¶</a></h3>
+<p>New features:</p>
+<ul class="simple">
+<li>Support for UUID arrays.</li>
+<li>It is now possible to build psycopg linking to a static libpq
+library.</li>
+</ul>
+<p>Bug fixes:</p>
+<ul class="simple">
+<li>Fixed a deadlock related to using the same connection with
+multiple cursors from different threads.</li>
+<li>Builds again with MSVC.</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-2-0-12">
+<h3>What&#8217;s new in psycopg 2.0.12<a class="headerlink" href="#what-s-new-in-psycopg-2-0-12" title="Permalink to this headline">¶</a></h3>
+<p>New features:</p>
+<ul class="simple">
+<li>The connection object now has a reset() method that can be used to
+reset the connection to its default state.</li>
+</ul>
+<p>Bug fixes:</p>
+<ul class="simple">
+<li>copy_to() and copy_from() now accept a much larger number of columns.</li>
+<li>Fixed PostgreSQL version detection.</li>
+<li>Fixed ZPsycopgDA version check.</li>
+<li>Fixed regression in ZPsycopgDA that made it behave wrongly when
+receiving serialization errors: now the query is re-issued as it
+should be by propagating the correct exception to Zope.</li>
+<li>Writing &#8220;large&#8221; large objects should now work.</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-2-0-11">
+<h3>What&#8217;s new in psycopg 2.0.11<a class="headerlink" href="#what-s-new-in-psycopg-2-0-11" title="Permalink to this headline">¶</a></h3>
+<p>New features:</p>
+<ul class="simple">
+<li>DictRow and RealDictRow now use less memory. If you inherit on them
+remember to set __slots__ for your new attributes or be prepare to
+go back to old memory usage.</li>
+</ul>
+<p>Bug fixes:</p>
+<ul class="simple">
+<li>Fixed exception in setup.py.</li>
+<li>More robust detection of PostgreSQL development versions.</li>
+<li>Fixed exception in RealDictCursor, introduced in 2.0.10.</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-2-0-10">
+<h3>What&#8217;s new in psycopg 2.0.10<a class="headerlink" href="#what-s-new-in-psycopg-2-0-10" title="Permalink to this headline">¶</a></h3>
+<p>New features:</p>
+<ul class="simple">
+<li>A specialized type-caster that can parse time zones with seconds is
+now available. Note that after enabling it (see extras.py) &#8220;wrong&#8221;
+time zones will be parsed without raising an exception but the
+result will be rounded.</li>
+<li>DictCursor can be used as a named cursor.</li>
+<li>DictRow now implements more dict methods.</li>
+<li>The connection object now expose PostgreSQL server version as the
+.server_version attribute and the protocol version used as
+.protocol_version.</li>
+<li>The connection object has a .get_parameter_status() methods that
+can be used to obtain useful information from the server.</li>
+</ul>
+<p>Bug fixes:</p>
+<ul class="simple">
+<li>None is now correctly always adapted to NULL.</li>
+<li>Two double memory free errors provoked by multithreading and
+garbage collection are now fixed.</li>
+<li>Fixed usage of internal Python code in the notice processor; this
+should fix segfaults when receiving a lot of notices in
+multithreaded programs.</li>
+<li>Should build again on MSVC and Solaris.</li>
+<li>Should build with development versions of PostgreSQL (ones with
+-devel version string.)</li>
+<li>Fixed some tests that failed even when psycopg was right.</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-2-0-9">
+<h3>What&#8217;s new in psycopg 2.0.9<a class="headerlink" href="#what-s-new-in-psycopg-2-0-9" title="Permalink to this headline">¶</a></h3>
+<p>New features:</p>
+<ul class="simple">
+<li>&#8220;import psycopg2.extras&#8221; to get some support for handling times
+and timestamps with seconds in the time zone offset.</li>
+<li>DictCursors can now be used as named cursors.</li>
+</ul>
+<p>Bug fixes:</p>
+<ul class="simple">
+<li>register_type() now accept an explicit None as its second parameter.</li>
+<li>psycopg2 should build again on MSVC and Solaris.</li>
+</ul>
+</div>
+<div class="section" id="id1">
+<h3>What&#8217;s new in psycopg 2.0.9<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>New features:</p>
+<ul class="simple">
+<li>COPY TO/COPY FROM queries now can be of any size and psycopg will
+correctly quote separators.</li>
+<li>float values Inf and NaN are now correctly handled and can
+round-trip to the database.</li>
+<li>executemany() now return the numer of total INSERTed or UPDATEd
+rows. Note that, as it has always been, executemany() should not
+be used to execute multiple SELECT statements and while it will
+execute the statements without any problem, it will return the
+wrong value.</li>
+<li>copy_from() and copy_to() can now use quoted separators.</li>
+<li>&#8220;import psycopg2.extras&#8221; to get UUID support.</li>
+</ul>
+<p>Bug fixes:</p>
+<ul class="simple">
+<li>register_type() now works on connection and cursor subclasses.</li>
+<li>fixed a memory leak when using lobjects.</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-2-0-8">
+<h3>What&#8217;s new in psycopg 2.0.8<a class="headerlink" href="#what-s-new-in-psycopg-2-0-8" title="Permalink to this headline">¶</a></h3>
+<p>New features:</p>
+<ul class="simple">
+<li>The connection object now has a get_backend_pid() method that
+returns the current PostgreSQL connection backend process PID.</li>
+<li>The PostgreSQL large object API has been exposed through the
+Cursor.lobject() method.</li>
+</ul>
+<p>Bug fixes:</p>
+<ul class="simple">
+<li>Some fixes to ZPsycopgDA have been merged from the Debian package.</li>
+<li>A memory leak was fixed in Cursor.executemany().</li>
+<li>A double free was fixed in pq_complete_error(), that caused crashes
+under some error conditions.</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-2-0-7">
+<h3>What&#8217;s new in psycopg 2.0.7<a class="headerlink" href="#what-s-new-in-psycopg-2-0-7" title="Permalink to this headline">¶</a></h3>
+<p>Improved error handling:</p>
+<ul class="simple">
+<li>All instances of psycopg2.Error subclasses now have pgerror,
+pgcode and cursor attributes.  They will be set to None if no
+value is available.</li>
+<li>Exception classes are now chosen based on the SQLSTATE value from
+the result.  (#184)</li>
+<li>The commit() and rollback() methods now set the pgerror and pgcode
+attributes on exceptions. (#152)</li>
+<li>errors from commit() and rollback() are no longer considered
+fatal. (#194)</li>
+<li>If a disconnect is detected during execute(), an exception will be
+raised at that point rather than resulting in &#8220;ProgrammingError:
+no results to fetch&#8221; later on. (#186)</li>
+</ul>
+<p>Better PostgreSQL compatibility:</p>
+<ul class="simple">
+<li>If the server uses standard_conforming_strings, perform
+appropriate quoting.</li>
+<li>BC dates are now handled if psycopg is compiled with mxDateTime
+support.  If using datetime, an appropriate ValueError is
+raised. (#203)</li>
+</ul>
+<p>Other bug fixes:</p>
+<ul class="simple">
+<li>If multiple sub-interpreters are in use, do not share the Decimal
+type between them. (#192)</li>
+<li>Buffer objects obtained from psycopg are now accepted by psycopg
+too, without segfaulting. (#209)</li>
+<li>A few small changes were made to improve DB-API compatibility.
+All the dbapi20 tests now pass.</li>
+</ul>
+<p>Miscellaneous:</p>
+<ul class="simple">
+<li>The PSYCOPG_DISPLAY_SIZE option is now off by default.  This means
+that display size will always be set to &#8220;None&#8221; in
+cursor.description.  Calculating the display size was expensive,
+and infrequently used so this should improve performance.</li>
+<li>New QueryCanceledError and TransactionRollbackError exceptions
+have been added to the psycopg2.extensions module.  They can be
+used to detect statement timeouts and deadlocks respectively.</li>
+<li>Cursor objects now have a &#8220;closed&#8221; attribute. (#164)</li>
+<li>If psycopg has been built with debug support, it is now necessary
+to set the PSYCOPG_DEBUG environment variable to turn on debug
+spew.</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-2-0-6">
+<h3>What&#8217;s new in psycopg 2.0.6<a class="headerlink" href="#what-s-new-in-psycopg-2-0-6" title="Permalink to this headline">¶</a></h3>
+<p>Better support for PostgreSQL, Python and win32:</p>
+<ul class="simple">
+<li>full support for PostgreSQL 8.2, including NULLs in arrays</li>
+<li>support for almost all existing PostgreSQL encodings</li>
+<li>full list of PostgreSQL error codes available by importing the
+psycopg2.errorcodes module</li>
+<li>full support for Python 2.5 and 64 bit architectures</li>
+<li>better build support on win32 platform</li>
+</ul>
+<p>Support for per-connection type-casters (used by ZPsycopgDA too, this
+fixes a long standing bug that made different connections use a random
+set of date/time type-casters instead of the configured one.)</p>
+<p>Better management of times and dates both from Python and in Zope.</p>
+<p>copy_to and copy_from now take an extra &#8220;columns&#8221; parameter.</p>
+<p>Python tuples are now adapted to SQL sequences that can be used with
+the &#8220;IN&#8221; operator by default if the psycopg2.extensions module is
+imported (i.e., the SQL_IN adapter was moved from extras to extensions.)</p>
+<p>Fixed some small buglets and build glitches:</p>
+<ul class="simple">
+<li>removed double mutex destroy</li>
+<li>removed all non-constant initializers</li>
+<li>fixed PyObject_HEAD declarations to avoid memory corruption
+on 64 bit architectures</li>
+<li>fixed several Python API calls to work on 64 bit architectures</li>
+<li>applied compatibility macros from PEP 353</li>
+<li>now using more than one argument format raise an error instead of
+a segfault</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-2-0-5-1">
+<h3>What&#8217;s new in psycopg 2.0.5.1<a class="headerlink" href="#what-s-new-in-psycopg-2-0-5-1" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Now it really, really builds on MSVC and older gcc versions.</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-2-0-5">
+<h3>What&#8217;s new in psycopg 2.0.5<a class="headerlink" href="#what-s-new-in-psycopg-2-0-5" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Fixed various buglets such as:<ul>
+<li>segfault when passing an empty string to Binary()</li>
+<li>segfault on null queries</li>
+<li>segfault and bad keyword naming in .executemany()</li>
+<li>OperationalError in connection objects was always None</li>
+</ul>
+</li>
+<li>Various changes to ZPsycopgDA to make it more zope2.9-ish.</li>
+<li>connect() now accept both integers and strings as port parameter</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-2-0-4">
+<h3>What&#8217;s new in psycopg 2.0.4<a class="headerlink" href="#what-s-new-in-psycopg-2-0-4" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Fixed float conversion bug introduced in 2.0.3.</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-2-0-3">
+<h3>What&#8217;s new in psycopg 2.0.3<a class="headerlink" href="#what-s-new-in-psycopg-2-0-3" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Fixed various buglets and a memory leak (see ChangeLog for details)</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-2-0-2">
+<h3>What&#8217;s new in psycopg 2.0.2<a class="headerlink" href="#what-s-new-in-psycopg-2-0-2" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Fixed a bug in array typecasting that sometimes made psycopg forget about
+the last element in the array.</li>
+<li>Fixed some minor buglets in string memory allocations.</li>
+<li>Builds again with compilers different from gcc (#warning about PostgreSQL
+version is issued only if __GCC__ is defined.)</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-2-0-1">
+<h3>What&#8217;s new in psycopg 2.0.1<a class="headerlink" href="#what-s-new-in-psycopg-2-0-1" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>ZPsycopgDA now actually loads.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="what-s-new-in-psycopg-2-0">
+<h2>What&#8217;s new in psycopg 2.0<a class="headerlink" href="#what-s-new-in-psycopg-2-0" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Fixed handle leak on win32.</li>
+<li>If available the new &#8220;safe&#8221; encoding functions of libpq are used.</li>
+<li>django and tinyerp people, please switch to psycopg 2 _without_
+using a psycopg 1 compatibility layer (this release was anticipated
+so that you all stop grumbling about psycopg 2 is still in beta.. :)</li>
+</ul>
+<div class="section" id="what-s-new-in-psycopg-2-0-beta-7">
+<h3>What&#8217;s new in psycopg 2.0 beta 7<a class="headerlink" href="#what-s-new-in-psycopg-2-0-beta-7" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Ironed out last problems with times and date (should be quite solid now.)</li>
+<li>Fixed problems with some arrays.</li>
+<li>Slightly better ZPsycopgDA (no more double connection objects in the menu
+and other minor fixes.)</li>
+<li>ProgrammingError exceptions now have three extra attributes: .cursor
+(it is possible to access the query that caused the exception using
+error.cursor.query), .pgerror and .pgcode (PostgreSQL original error
+text and code.)</li>
+<li>The build system uses pg_config when available.</li>
+<li>Documentation in the doc/ directory! (With many kudos to piro.)</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-2-0-beta-6">
+<h3>What&#8217;s new in psycopg 2.0 beta 6<a class="headerlink" href="#what-s-new-in-psycopg-2-0-beta-6" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Support for named cursors (see examples/fetch.py).</li>
+<li>Safer parsing of time intervals.</li>
+<li>Better parsing of times and dates, no more locale problems.</li>
+<li>Should now play well with py2exe and similar tools.</li>
+<li>The &#8220;decimal&#8221; module is now used if available under Python 2.3.</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-2-0-beta-5">
+<h3>What&#8217;s new in psycopg 2.0 beta 5<a class="headerlink" href="#what-s-new-in-psycopg-2-0-beta-5" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Fixed all known bugs.</li>
+<li>The initial isolation level is now read from the server and
+.set_isolation_level() now takes values defined in psycopg2.extensions.</li>
+<li>.callproc() implemented as a SELECT of the given procedure.</li>
+<li>Better docstrings for a few functions/methods.</li>
+<li>Some time-related functions like psycopg2.TimeFromTicks() now take the
+local timezone into account. Also a tzinfo object (as per datetime module
+specifications) can be passed to the psycopg2.Time and psycopg2.Datetime
+constructors.</li>
+<li>All classes have been renamed to exist in the psycopg2._psycopg module,
+to fix problems with automatic documentation generators like epydoc.</li>
+<li>NOTIFY is correctly trapped (see examples/notify.py for example code.)</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-2-0-beta-4">
+<h3>What&#8217;s new in psycopg 2.0 beta 4<a class="headerlink" href="#what-s-new-in-psycopg-2-0-beta-4" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>psycopg module is now named psycopg2.</li>
+<li>No more segfaults when a UNICODE query can&#8217;t be converted to the
+backend encoding.</li>
+<li>No more segfaults on empty queries.</li>
+<li>psycopg2.connect() now takes an integer for the port keyword parameter.</li>
+<li>&#8220;python setup.py bdist_rpm&#8221; now works.</li>
+<li>Fixed lots of small bugs, see ChangeLog for details.</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-2-0-beta-3">
+<h3>What&#8217;s new in psycopg 2.0 beta 3<a class="headerlink" href="#what-s-new-in-psycopg-2-0-beta-3" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>ZPsycopgDA now works (except table browsing.)</li>
+<li>psycopg build again on Python 2.2.</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-2-0-beta-2">
+<h3>What&#8217;s new in psycopg 2.0 beta 2<a class="headerlink" href="#what-s-new-in-psycopg-2-0-beta-2" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Fixed ZPsycopgDA version check (ZPsycopgDA can now be imported in
+Zope.)</li>
+<li>psycopg.extras.DictRow works even after a new query on the generating
+cursor.</li>
+<li>Better setup.py for win32 (should build with MSCV or mingw.)</li>
+<li>Generic fixed and memory leaks plugs.</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-2-0-beta-1">
+<h3>What&#8217;s new in psycopg 2.0 beta 1<a class="headerlink" href="#what-s-new-in-psycopg-2-0-beta-1" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Officially in beta (i.e., no new features will be added.)</li>
+<li>Array support: list objects can be passed as bound variables and are
+correctly returned for array columns.</li>
+<li>Added the psycopg.psycopg1 compatibility module (if you want instant
+psycopg 1 compatibility just &#8220;from psycopg import psycopg1 as psycopg&#8221;.)</li>
+<li>Complete support for BYTEA columns and buffer objects.</li>
+<li>Added error codes to error messages.</li>
+<li>The AsIs adapter is now exported by default (also Decimal objects are
+adapted using the AsIs adapter (when str() is called on them they
+already format themselves using the right precision and scale.)</li>
+<li>The connect() function now takes &#8220;connection_factory&#8221; instead of
+&#8220;factory&#8221; as keyword argument.</li>
+<li>New setup.py code to build on win32 using mingw and better error
+messages on missing datetime headers,</li>
+<li>Internal changes that allow much better user-defined type casters.</li>
+<li>A lot of bugfixes (binary, datetime, 64 bit arches, GIL, .executemany())</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-1-99-13">
+<h3>What&#8217;s new in psycopg 1.99.13<a class="headerlink" href="#what-s-new-in-psycopg-1-99-13" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Added missing .executemany() method.</li>
+<li>Optimized type cast from PostgreSQL to Python (psycopg should be even
+faster than before.)</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-1-99-12">
+<h3>What&#8217;s new in psycopg 1.99.12<a class="headerlink" href="#what-s-new-in-psycopg-1-99-12" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>.rowcount should be ok and in sync with psycopg 1.</li>
+<li>Implemented the new COPY FROM/COPY TO code when connection to the
+backend using libpq protocol 3 (this also removes all asprintf calls:
+build on win32 works again.) A protocol 3-enabled psycopg <em>can</em>
+connect to an old protocol 2 database and will detect it and use the
+right code.</li>
+<li>getquoted() called for real by the mogrification code.</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-1-99-11">
+<h3>What&#8217;s new in psycopg 1.99.11<a class="headerlink" href="#what-s-new-in-psycopg-1-99-11" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>&#8216;cursor&#8217; argument in .cursor() connection method renamed to
+&#8216;cursor_factory&#8217;.</li>
+<li>changed &#8216;tuple_factory&#8217; cursor attribute name to &#8216;row_factory&#8217;.</li>
+<li>the .cursor attribute is gone and connections and cursors are properly
+gc-managed.</li>
+<li>fixes to the async core.</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-1-99-10">
+<h3>What&#8217;s new in psycopg 1.99.10<a class="headerlink" href="#what-s-new-in-psycopg-1-99-10" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>The adapt() function now fully supports the adaptation protocol
+described in PEP 246. Note that the adapters registry now is indexed
+by (type, protocol) and not by type alone. Change your adapters
+accordingly.</li>
+<li>More configuration options moved from setup.py to setup.cfg.</li>
+<li>Fixed two memory leaks: one in cursor deallocation and one in row
+fetching (.fetchXXX() methods.)</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-1-99-9">
+<h3>What&#8217;s new in psycopg 1.99.9<a class="headerlink" href="#what-s-new-in-psycopg-1-99-9" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Added simple pooling code (psycopg.pool module); see the reworked
+examples/threads.py for example code.</li>
+<li>Added DECIMAL typecaster to convert postgresql DECIMAL and NUMERIC
+types (i.e, all types with an OID of NUMERICOID.) Note that the
+DECIMAL typecaster does not set scale and precision on the created
+objects but uses Python defaults.</li>
+<li>ZPsycopgDA back in and working using the new pooling code.</li>
+<li>Isn&#8217;t that enough? :)</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-1-99-8">
+<h3>What&#8217;s new in psycopg 1.99.8<a class="headerlink" href="#what-s-new-in-psycopg-1-99-8" title="Permalink to this headline">¶</a></h3>
+<ul>
+<li><p class="first">added support for UNICODE queries.</p>
+</li>
+<li><p class="first">added UNICODE typecaster; to activate it just do:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">psycopg</span><span class="o">.</span><span class="n">extensions</span><span class="o">.</span><span class="n">register_type</span><span class="p">(</span><span class="n">psycopg</span><span class="o">.</span><span class="n">extensions</span><span class="o">.</span><span class="n">UNICODE</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that the UNICODE typecaster override the STRING one, so it is
+not activated by default.</p>
+</li>
+<li><p class="first">cursors now really support the iterator protocol.</p>
+</li>
+<li><p class="first">solved the rounding errors in time conversions.</p>
+</li>
+<li><p class="first">now cursors support .fileno() and .isready() methods, to be used in
+select() calls.</p>
+</li>
+<li><p class="first">.copy_from() and .copy_in() methods are back in (still using the old
+protocol, will be updated to use new one in next release.)</p>
+</li>
+<li><p class="first">fixed memory corruption bug reported on win32 platform.</p>
+</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-1-99-7">
+<h3>What&#8217;s new in psycopg 1.99.7<a class="headerlink" href="#what-s-new-in-psycopg-1-99-7" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>added support for tuple factories in cursor objects (removed factory
+argument in favor of a .tuple_factory attribute on the cursor object);
+see the new module psycopg.extras for a cursor (DictCursor) that
+return rows as objects that support indexing both by position and
+column name.</li>
+<li>added support for tzinfo objects in datetime.timestamp objects: the
+PostgreSQL type &#8220;timestamp with time zone&#8221; is converted to
+datetime.timestamp with a FixedOffsetTimezone initialized as necessary.</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-1-99-6">
+<h3>What&#8217;s new in psycopg 1.99.6<a class="headerlink" href="#what-s-new-in-psycopg-1-99-6" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>sslmode parameter from 1.1.x</li>
+<li>various datetime conversion improvements.</li>
+<li>now psycopg should compile without mx or without native datetime
+(not both, obviously.)</li>
+<li>included various win32/MSVC fixes (pthread.h changes, winsock2
+library, include path in setup.py, etc.)</li>
+<li>ported interval fixes from 1.1.14/1.1.15.</li>
+<li>the last query executed by a cursor is now available in the
+.query attribute.</li>
+<li>conversion of unicode strings to backend encoding now uses a table
+(that still need to be filled.)</li>
+<li>cursors now have a .mogrify() method that return the query string
+instead of executing it.</li>
+<li>connection objects now have a .dsn read-only attribute that holds the
+connection string.</li>
+<li>moved psycopg C module to _psycopg and made psycopg a python module:
+this allows for a neat separation of DBAPI-2.0 functionality and psycopg
+extensions; the psycopg namespace will be also used to provide
+python-only extensions (like the pooling code, some ZPsycopgDA support
+functions and the like.)</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-1-99-3">
+<h3>What&#8217;s new in psycopg 1.99.3<a class="headerlink" href="#what-s-new-in-psycopg-1-99-3" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>added support for python 2.3 datetime types (both ways) and made datetime
+the default set of typecasters when available.</li>
+<li>added example: dt.py.</li>
+</ul>
+</div>
+<div class="section" id="id2">
+<h3>What&#8217;s new in psycopg 1.99.3<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>initial working support for unicode bound variables: UTF-8 and latin-1
+backend encodings are natively supported (and the encoding.py example even
+works!)</li>
+<li>added .set_client_encoding() method on the connection object.</li>
+<li>added examples: encoding.py, binary.py, lastrowid.py.</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-1-99-2">
+<h3>What&#8217;s new in psycopg 1.99.2<a class="headerlink" href="#what-s-new-in-psycopg-1-99-2" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>better typecasting:<ul>
+<li>DateTimeDelta used for postgresql TIME (merge from 1.1)</li>
+<li>BYTEA now is converted to a real buffer object, not to a string</li>
+</ul>
+</li>
+<li>buffer objects are now adapted into Binary objects automatically.</li>
+<li>ported scroll method from 1.1 (DBAPI-2.0 extension for cursors)</li>
+<li>initial support for some DBAPI-2.0 extensions:<ul>
+<li>.rownumber attribute for cursors</li>
+<li>.connection attribute for cursors</li>
+<li>.next() and .__iter__() methods to have cursors support the iterator
+protocol</li>
+<li>all exception objects are exported to the connection object</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-1-99-1">
+<h3>What&#8217;s new in psycopg 1.99.1<a class="headerlink" href="#what-s-new-in-psycopg-1-99-1" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>implemented microprotocols to adapt arbitrary types to the interface used by
+psycopg to bind variables in execute;</li>
+<li>moved qstring, pboolean and mxdatetime to the new adapter layout (binary is
+still missing; python 2.3 datetime needs to be written).</li>
+</ul>
+</div>
+<div class="section" id="what-s-new-in-psycopg-1-99-0">
+<h3>What&#8217;s new in psycopg 1.99.0<a class="headerlink" href="#what-s-new-in-psycopg-1-99-0" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>reorganized the whole source tree;</li>
+<li>async core is in place;</li>
+<li>splitted QuotedString objects from mx stuff;</li>
+<li>dropped autotools and moved to pythonic setup.py (needs work.)</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Release notes</a><ul>
+<li><a class="reference internal" href="#current-release">Current release</a><ul>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-5-2">What&#8217;s new in psycopg 2.5.2</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-5-1">What&#8217;s new in psycopg 2.5.1</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-5">What&#8217;s new in psycopg 2.5</a><ul>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-4-6">What&#8217;s new in psycopg 2.4.6</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-4-5">What&#8217;s new in psycopg 2.4.5</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-4-4">What&#8217;s new in psycopg 2.4.4</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-4-3">What&#8217;s new in psycopg 2.4.3</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-4-2">What&#8217;s new in psycopg 2.4.2</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-4-1">What&#8217;s new in psycopg 2.4.1</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-4">What&#8217;s new in psycopg 2.4</a><ul>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-3-2">What&#8217;s new in psycopg 2.3.2</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-3-1">What&#8217;s new in psycopg 2.3.1</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-3">What&#8217;s new in psycopg 2.3</a><ul>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-2-2">What&#8217;s new in psycopg 2.2.2</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-2-1">What&#8217;s new in psycopg 2.2.1</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-2">What&#8217;s new in psycopg 2.2</a><ul>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-0-14">What&#8217;s new in psycopg 2.0.14</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-0-13">What&#8217;s new in psycopg 2.0.13</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-0-12">What&#8217;s new in psycopg 2.0.12</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-0-11">What&#8217;s new in psycopg 2.0.11</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-0-10">What&#8217;s new in psycopg 2.0.10</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-0-9">What&#8217;s new in psycopg 2.0.9</a></li>
+<li><a class="reference internal" href="#id1">What&#8217;s new in psycopg 2.0.9</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-0-8">What&#8217;s new in psycopg 2.0.8</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-0-7">What&#8217;s new in psycopg 2.0.7</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-0-6">What&#8217;s new in psycopg 2.0.6</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-0-5-1">What&#8217;s new in psycopg 2.0.5.1</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-0-5">What&#8217;s new in psycopg 2.0.5</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-0-4">What&#8217;s new in psycopg 2.0.4</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-0-3">What&#8217;s new in psycopg 2.0.3</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-0-2">What&#8217;s new in psycopg 2.0.2</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-0-1">What&#8217;s new in psycopg 2.0.1</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-0">What&#8217;s new in psycopg 2.0</a><ul>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-0-beta-7">What&#8217;s new in psycopg 2.0 beta 7</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-0-beta-6">What&#8217;s new in psycopg 2.0 beta 6</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-0-beta-5">What&#8217;s new in psycopg 2.0 beta 5</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-0-beta-4">What&#8217;s new in psycopg 2.0 beta 4</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-0-beta-3">What&#8217;s new in psycopg 2.0 beta 3</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-0-beta-2">What&#8217;s new in psycopg 2.0 beta 2</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-2-0-beta-1">What&#8217;s new in psycopg 2.0 beta 1</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-1-99-13">What&#8217;s new in psycopg 1.99.13</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-1-99-12">What&#8217;s new in psycopg 1.99.12</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-1-99-11">What&#8217;s new in psycopg 1.99.11</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-1-99-10">What&#8217;s new in psycopg 1.99.10</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-1-99-9">What&#8217;s new in psycopg 1.99.9</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-1-99-8">What&#8217;s new in psycopg 1.99.8</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-1-99-7">What&#8217;s new in psycopg 1.99.7</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-1-99-6">What&#8217;s new in psycopg 1.99.6</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-1-99-3">What&#8217;s new in psycopg 1.99.3</a></li>
+<li><a class="reference internal" href="#id2">What&#8217;s new in psycopg 1.99.3</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-1-99-2">What&#8217;s new in psycopg 1.99.2</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-1-99-1">What&#8217;s new in psycopg 1.99.1</a></li>
+<li><a class="reference internal" href="#what-s-new-in-psycopg-1-99-0">What&#8217;s new in psycopg 1.99.0</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="faq.html"
+                        title="previous chapter">Frequently Asked Questions</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/news.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="faq.html" title="Frequently Asked Questions"
+             >previous</a> |</li>
+        <li><a href="index.html">Psycopg 2.5.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2001-2013, Federico Di Gregorio. Documentation by Daniele Varrazzo.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.
+    </div>
+  </body>
+</html>
