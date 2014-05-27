@@ -1,35 +1,36 @@
-      <div class="container">
+     <div cliass="container">
         <div class="row clearfix">
           <div class="col-md-12 column">
             <div class="media"><a href="{{_infolink}}" class="pull-left">
               <br>
-              <img src="{{_imageurl}}" class="media-object" alt='cover-image' size=300x452 />
-              <div class="media-body" data-html="true">
-                <br>
-                <h3 class="media-heading">{{_title}}</h3>
-                </a>
-                <br>
-                <div class="panel-body" data-html="true">
-                 <br>{{_author}}<br>{{_publisher}}<br>{{_publishedDate}}<br>Availability : {{_accessViewStatus}}
-                </div> {{_description}} 
-              </div>		
-			      </div>
-			      <form method="POST" action="index.cgi" role="form">
-		          <div class="media">
-	              <div class="row clearfix">
-                  <div class="form-group">
+              <img src="{{_imageurl}}" class="img-responsive" alt='cover-image'>
+              </a>
+              <div class="clearfix">
+                <div class="media-body" data-html="true">
+                 <br>
+                 <a href="{{_infolink}}"> <h3 class="media-heading">{{_title}}</h3></a>
+                  <div class="panel-body" data-html="true">
+                   {{_author}}<br>{{_publisher}}<br>{{_publishedDate}}<br>Availability : {{_accessViewStatus}}
+                  </div> {{_description}} 
+                </div>		
+              </div>
+            </div>
+          <form method="POST" action="index.py" role="form">
+            <div class="media">
+	       <div class="row clearfix">
+                 <div class="form-group">
                     <label class="col-md-2 control-label" for="upload"></label>
                     <div class="col-md-8">
                       <button id="upload" name="upload" type="submit" value="confirm" class="btn btn-block btn-primary"><span class="glyphicon glyphicon-ok"></span> Confirm</button>
                     </div>
                   </div>
                 </div>
-		          </div>
-		        </form>
-		      </div>
-	      </div>
+              </div>
+	  </form>
+        </div>
       </div>
-		</div>
-	</div>
+    </div>
+  </div>
+</div>
 </body>
 </html>

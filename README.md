@@ -1,7 +1,7 @@
 #BUB : Book Uploader Bot
 
 * Author: Rohit Dua
-* Hosted : [http://tools.wmflabs.org/bub/index.py](http://tools.wmflabs.org/bub/index.py)
+* Hosted : [http://tools.wmflabs.org/bub](http://tools.wmflabs.org/bub)
 * Email: 8ohit.dua AT gmail DOT com
 * Originally created  to contribute to Wikimedia Commons(http://commons.wikimedia.org)
 

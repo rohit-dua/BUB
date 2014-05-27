@@ -3,8 +3,7 @@
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# the Free Software Foundation, version 3 of the License.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,7 +13,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #    
-# @author Rohit Dua <8ohit.dua@gmail.com>
+# @author Rohit Dua <8ohit.dua AT gmail DOT com>
+# Hosted at http://tools.wmflabs.org/bub/
+# Maintained at https://github.com/rohit-dua/BUB
 
 
 import requests
@@ -38,21 +39,23 @@ def verify_id(ID):
     """Verify the ID and accessViewStatus(public-domain) for the book"""
     Id = get_id_from_string(ID)
     if Id == None:
-        return False
+        return 1
     try:
         r = requests.get('https://www.googleapis.com/books/v1/volumes/' + Id + '?projection=lite' )
     except:
         #add exception to log
-        return False
+        return 1
+    if r.status_code == 404:
+	return 1
     if r.status_code != 200:
-        return False
+        return 10
     else:
         global BOOK_INFO
         BOOK_INFO = r.json()
         if BOOK_INFO['accessInfo']['accessViewStatus'] == 'NONE':
-            return False
+            return 2
         else:
-            return True
+            return 0
             
             
 def metadata():
@@ -68,4 +71,4 @@ def metadata():
         'infoLink' : BOOK_INFO['volumeInfo']['infoLink'] if 'infoLink' in keys1 else "",
         'accessViewStatus' : BOOK_INFO['accessInfo']['accessViewStatus']  if 'accessViewStatus' in BOOK_INFO['accessInfo'].keys() else ""
     }
-        
+ 
