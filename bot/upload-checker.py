@@ -40,9 +40,7 @@ def remove_from_db(users_info):
     global DB
     for u in users_info:
         info = json.loads(u)
-        print str(info)
         sno = int(info['request']['SNO'])
-        print str(sno)
         command = "DELETE FROM REQUESTS WHERE SNO = %s;"
         DB.execute(command, sno)
         
@@ -86,7 +84,7 @@ def send_email(users_info, ia_identifier):
         msg.attach(part2)
         p = Popen(["/usr/sbin/exim", "-odf", "-i", email], stdin=PIPE)
         p.communicate(msg.as_string())
-        print "mail sent to:%s" %email
+	#logger.info( "mail sent to:%s" %email)
             
 
 def check_if_upload_ready():
@@ -100,18 +98,16 @@ def check_if_upload_ready():
     q = redis_py.Queue(Redis_Key)
     Lock = redis_py.Lock(Lock_Key)
     while True:
-        print "in loop"
         list_names = q.pop(-1)
 	if list_names is False:
 	    time.sleep(2)
 	    continue
         for list_name in list_names:
-            print "in for"
             ia_identifier = redis.lrange(list_name, 0, 0)[0]       
 	    r = requests.head('http://archive.org/stream/%s/%s.djvu' %(ia_identifier, ia_identifier[4:]) )
             if 'content-type' in r.headers.keys():
                 if r.headers['content-type'] == 'image/x.djvu':
-                    print "upload completed for :%s" %ia_identifier
+		    #logger.info("upload completed for :%s" %ia_identifier)
                     Lock.acquire(timeout = 60*2)
                     users_info = redis.lrange(list_name, 1, -1)
                     redis.delete( list_name )
@@ -123,7 +119,6 @@ def check_if_upload_ready():
                     q.remove(list_name)
                     send_email( users_info, ia_identifier )
             else:
-                print "else here"
                 continue 
         time.sleep(2)    
         
