@@ -1,4 +1,4 @@
-      <form method="POST" action="index.py" role="form" class="form-horizontal">
+      <form method="POST" action="" role="form" class="form-horizontal">
         <fieldset>
 
           <legend>Upload File from Libraries</legend>
@@ -27,7 +27,7 @@
             <label class="col-md-2 control-label" for="commonsName"></label>
             <div class="col-md-8">
               <div class="input-group">
-                <input id="commonsName" name="commonsName" class="form-control" placeholder="Filename for Commons" required="" type="text" maxlength="40" value = "{{_commonsName if _commonsName else ''}}">
+                <input id="commonsName" name="commonsName" class="form-control" placeholder="Filename for Commons" required="" type="text" maxlength="250" value = "{{_commonsName if _commonsName else ''}}">
                 <span class="input-group-addon">.djvu</span>
               </div>
     
@@ -37,7 +37,7 @@
           <div class="form-group {{'has-error' if _errorNo == 5 else ''}}">
             <label class="col-md-2 control-label" for="email"></label>  
             <div class="col-md-8">
-              <input id="email" name="email" placeholder="Email" class="form-control input-md" required="" type="text" maxlength="40" value = "{{_email if _email else ''}}">
+              <input id="email" name="email" placeholder="Email Address" class="form-control input-md" required="" type="email" maxlength="100" value = "{{_email if _email else ''}}">
             </div>
           </div>
 
