@@ -33,17 +33,17 @@ sys.path.append('../lib')
 import redis_py
 import mysql_py
 
-DB = object
+#DB = object
 
 def remove_from_db(users_info):
     """Remove database entry of request."""
-    global DB
+    db = mysql_py.db()
     for u in users_info:
         info = json.loads(u)
         sno = int(info['request']['SNO'])
         command = "DELETE FROM REQUESTS WHERE SNO = %s;"
-        DB.execute(command, sno)
-        
+        db.execute(command, sno)
+    db.close() 
         
 def send_email(users_info, ia_identifier):
     """send html email to all requests associated with
@@ -88,8 +88,8 @@ def send_email(users_info, ia_identifier):
             
 
 def check_if_upload_ready():
-    global DB
-    DB = mysql_py.db()
+    #global DB
+    #DB = mysql_py.db()
     redis = redis_py.Redis()
     json_data = open('../../settings.json')
     settings = json.load(json_data)
