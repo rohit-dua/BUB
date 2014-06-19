@@ -51,7 +51,7 @@ def verify_id(Id_string):
         return 10
     else:
         book_info = r.json()
-        if book_info['accessInfo']['accessViewStatus'] is 'NONE':
+        if book_info['accessInfo']['accessViewStatus'] == 'NONE':
             return 2
         else:
             return 0
@@ -59,6 +59,7 @@ def verify_id(Id_string):
 
 def metadata(Id):
     """Return book information and meta-data"""
+    Id = get_id_from_string(Id)
     r = requests.get('https://www.googleapis.com/books/v1/volumes/%s' %Id )
     book_info = r.json()
     keys1 = book_info['volumeInfo'].keys()
@@ -119,7 +120,7 @@ def download_book(Id):
         output_file = "./downloads/gb_" + str(Id) + "_" + str((page_no+1)) + "."
         download_image_to_file(image_url, output_file)
     total_pages = page_no+1
-    command = "convert $(ls -1v ./downloads/gb_%s_*) -units PixelsPerInch -density 150x150 ./downloads/gb_%s.pdf" %(Id,Id)
+    command = "for name in ./downloads/gb_%s_*; do convert $name -units PixelsPerInch -density 150x150 $(echo ${name%%.*}).pdf; done; gs -dBATCH -dNOPAUSE -sDEVICE=pdfwrite -sOutputFile=./downloads/gb_%s.pdf $(ls -1v ./downloads/gb_%s_*.pdf);" %(Id,Id,Id)
     status = subprocess.check_call(command, shell=True)
     if status == 0:
         command = "rm ./downloads/gb_%s_*" %(Id)
