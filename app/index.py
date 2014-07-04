@@ -24,6 +24,7 @@ import Cookie
 import os
 import hashlib
 import json
+from xml.sax.saxutils import escape
 
 sys.path.append('../lib')
 from bottle import template
@@ -144,6 +145,14 @@ def store_db(book, uuid):
     db.close()
 
 
+def html_escape(text):
+    html_escape_table = {
+      '"': "&quot;",
+      "'": "&apos;"
+    }
+    return escape(text, html_escape_table)
+
+
 def confirmation_page(book, info):
     """Display confirmation web page"""
     head = open('templates/head.html', 'r')
@@ -155,11 +164,11 @@ def confirmation_page(book, info):
     body2_data = template(body2_data,\
      _infolink = info['infoLink'],\
      _imageurl = info['image_url'],\
-     _title = cgi.escape(info['title']),\
-     _author = cgi.escape(info['author']),\
-     _publisher = cgi.escape(info['publisher']),\
-     _publishedDate = cgi.escape(info['publishedDate']),\
-     _description = cgi.escape(info['description']),\
+     _title = html_escape(info['title']),\
+     _author = html_escape(info['author']),\
+     _publisher = html_escape(info['publisher']),\
+     _publishedDate = html_escape(info['publishedDate']),\
+     _description = html_escape(info['description']),\
      _accessViewStatus = info['accessViewStatus'])
     uuid = set_cookie()
     status = store_db(book, uuid)
@@ -167,15 +176,20 @@ def confirmation_page(book, info):
         return 1
     print content_head() + head_data.encode('utf-8') + body2_data.encode('utf-8').decode('utf-8', 'replace').encode('utf-8')
 
+
+def remove_djvu_extension(commonsName):
+    if commonsName[-5:].lower() == ".djvu":
+        commonsName = commonsName[:-5]   
+    return commonsName 
         
 
 def manager():
     form = cgi.FieldStorage()
     if (form.has_key("library") and form.has_key("Id") and form.has_key("commonsName") and form.has_key("email")):
-        library_id = cgi.escape(form["library"].value[:40])
-        Id = cgi.escape(form["Id"].value[:150])
-        commonsName = cgi.escape(form["commonsName"].value[:40])
-        email = cgi.escape(form["email"].value[:40])
+        library_id = html_escape(form["library"].value[:40])
+        Id = html_escape(form["Id"].value[:150])
+        commonsName = html_escape(remove_djvu_extension(form["commonsName"].value[:40])) 
+        email = html_escape(form["email"].value[:40])
         book = bridge.fields(library_id, Id, commonsName, email)
         fields_status = book.verify_fields()
         if fields_status != 0:
@@ -185,7 +199,7 @@ def manager():
             confirmation_page(book, bridge.book_info(library_id, Id))
             return 0                
     elif (form.has_key("upload")):
-        if cgi.escape(form["upload"].value[:10]) == 'confirm':
+        if html_escape(form["upload"].value[:10]) == 'confirm':
             if 'HTTP_COOKIE' in os.environ:      
                 cookie_string=os.environ.get('HTTP_COOKIE')
                 if not cookie_string:

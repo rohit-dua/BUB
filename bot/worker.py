@@ -62,6 +62,7 @@ def lang_code(code):
         'it':'Italian',
         'ja':'Japanese',
         'ko':'Korean',
+	'la':'Latin',
         'lv':'Latvian',
         'lt':'Lithuanian',
         'no':'Norwegian',
@@ -81,9 +82,9 @@ def lang_code(code):
     }
     code = difflib.get_close_matches(code, language.keys(), 1)
     try:
-        return language[code]
+        return language[code[0]]
     except:
-        return ""
+        return code
 
 
 def submit_to_redis_list(fields, value):
@@ -147,7 +148,7 @@ class ia_worker(object):
                 return self.ia_identifier
 	#logging.info("%s not Uploaded to IA using bub." %self.ia_identifier)
         r = requests.get("""http://archive.org/advancedsearch.php?q=%s&fl[]=creator&fl[]=date&fl[]=identifier&fl[]=language&
-        fl[]=publisher&fl[]=title&sort[]=&sort[]=&sort[]=&rows=20&page=1&output=json""" % re.sub(r"""[!#\n|^\\\"\'~()\[\]]""", '', self.title) )
+	fl[]=publisher&fl[]=title&sort[]=&sort[]=&sort[]=&rows=20&page=1&output=json""" % re.sub(r"""[!#\n|^\\\"~()\[\]\-]""", '', self.title)[:365] )
         ia_info = r.json()
         numFound = int(ia_info['response']['numFound'])
         if numFound > 20:
@@ -215,14 +216,15 @@ class ia_worker(object):
         metadata = dict(
           mediatype = "text",
           creator = self.author,
-          title = re.sub(r"""[!#\n|^\\\"\'~()\[\]]""",'',self.title),
+	  title = re.sub(r"""[!#\n|^\\\"~()\[\]\-]""",'',self.title)[:365],
           publisher = self.publisher,
-          description = re.sub(r"""[!#\n|^\\\"\'~()\[\]]""",'',self.description),
+          description = re.sub(r"""[!#\n|^\\\"~()\[\]\-]""",'',self.description),
           source = self.library_name,
           language = self.language,
           year = self.year,
           date = self.publishedDate,
           subject = "bub_upload",
+	  licenseurl = "http://creativecommons.org/publicdomain/mark/1.0/",
 	  scanner = self.library_name,
           Digitizing_sponsor = self.library_name )
         filename = "./downloads/%s_%s.pdf" %(self.library, self.Id)

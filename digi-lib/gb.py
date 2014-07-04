@@ -24,6 +24,12 @@ import json
 import subprocess
 
 
+def books_api_key():
+    json_data = open('../../settings.json')
+    settings = json.load(json_data)
+    return str(settings['google_books']['key_1'])
+
+
 def get_id_from_string(s):
     """Return book ID from a string (can be a book code or URL)."""
     if "/" not in s:
@@ -40,8 +46,9 @@ def verify_id(Id_string):
     Id = get_id_from_string(Id_string)
     if Id == None:
         return 1
+    key = books_api_key()
     try:
-        r = requests.get('https://www.googleapis.com/books/v1/volumes/%s?projection=lite' %Id )
+        r = requests.get('https://www.googleapis.com/books/v1/volumes/%s?key=%s' %(Id, key), headers={'referer': "tools.wmflabs.org/bub"} )
     except:
 	    #logging.error("error requests: %s" %Id)
         return 1
@@ -51,7 +58,7 @@ def verify_id(Id_string):
         return 10
     else:
         book_info = r.json()
-        if book_info['accessInfo']['accessViewStatus'] == 'NONE':
+        if book_info['accessInfo']['publicDomain'] == False:
             return 2
         else:
             return 0
@@ -60,7 +67,8 @@ def verify_id(Id_string):
 def metadata(Id):
     """Return book information and meta-data"""
     Id = get_id_from_string(Id)
-    r = requests.get('https://www.googleapis.com/books/v1/volumes/%s' %Id )
+    key = books_api_key()
+    r = requests.get('https://www.googleapis.com/books/v1/volumes/%s?key=%s' %(Id, key), headers={'referer': "tools.wmflabs.org/bub"} )
     book_info = r.json()
     keys1 = book_info['volumeInfo'].keys()
     return dict(
@@ -120,7 +128,7 @@ def download_book(Id):
         output_file = "./downloads/gb_" + str(Id) + "_" + str((page_no+1)) + "."
         download_image_to_file(image_url, output_file)
     total_pages = page_no+1
-    command = "for name in ./downloads/gb_%s_*; do convert $name -units PixelsPerInch -density 150x150 $(echo ${name%%.*}).pdf; done; gs -dBATCH -dNOPAUSE -sDEVICE=pdfwrite -sOutputFile=./downloads/gb_%s.pdf $(ls -1v ./downloads/gb_%s_*.pdf);" %(Id,Id,Id)
+    command = "for name in ./downloads/gb_%s_*; do convert $name -units PixelsPerInch -density 300x300 $(echo ${name%%.*}).pdf; done; gs -r300 -dBATCH -dNOPAUSE -sDEVICE=pdfwrite -sOutputFile=./downloads/gb_%s.pdf $(ls -1v ./downloads/gb_%s_*.pdf);" %(Id,Id,Id)
     status = subprocess.check_call(command, shell=True)
     if status == 0:
         command = "rm ./downloads/gb_%s_*" %(Id)

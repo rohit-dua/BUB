@@ -103,24 +103,28 @@ def check_if_upload_ready():
 	    time.sleep(2)
 	    continue
         for list_name in list_names:
-            ia_identifier = redis.lrange(list_name, 0, 0)[0]       
-	    r = requests.head('http://archive.org/stream/%s/%s.djvu' %(ia_identifier, ia_identifier[4:]) )
-            if 'content-type' in r.headers.keys():
-                if r.headers['content-type'] == 'image/x.djvu':
-		    #logger.info("upload completed for :%s" %ia_identifier)
-                    Lock.acquire(timeout = 60*2)
-                    users_info = redis.lrange(list_name, 1, -1)
-                    redis.delete( list_name )
-		    #try:
-                    remove_from_db(users_info)
-		    #except:
-                    pass
-                    Lock.release()
-                    q.remove(list_name)
-                    send_email( users_info, ia_identifier )
+            ia_identifier = redis.lrange(list_name, 0, 0)[0] 
+
+            uploaded = 0
+	    r = requests.get('https://archive.org/metadata/%s' %(ia_identifier) ).json()
+            if 'metadata' in r.keys():
+                if 'ocr' in r['metadata'].keys():
+                    if r['metadata']['ocr'] == 'language not currently OCRable':
+                        uploaded = 2
+            if 'DjVuTXT' in str(r):
+                uploaded = 1
+            if uploaded != 0:
+                Lock.acquire(timeout = 60*2)
+                users_info = redis.lrange(list_name, 1, -1)
+                redis.delete( list_name )
+                remove_from_db(users_info)
+                Lock.release()
+                q.remove(list_name)
+                send_email( users_info, ia_identifier )                
             else:
-                continue 
-        time.sleep(2)    
+                continue
+        time.sleep(2)
+
         
     
 def main():
