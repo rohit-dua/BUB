@@ -32,31 +32,33 @@ from subprocess import Popen, PIPE
 sys.path.append('../lib')
 import redis_py
 import mysql_py
+import keys
 
-#DB = object
 
-def remove_from_db(users_info):
+def remove_from_db(users_request):
     """Remove database entry of request."""
-    db = mysql_py.db()
-    for u in users_info:
+    db = mysql_py.Db()
+    for u in users_request:
         info = json.loads(u)
-        sno = int(info['request']['SNO'])
+        sno = int(info['sno'])
         command = "DELETE FROM REQUESTS WHERE SNO = %s;"
         db.execute(command, sno)
     db.close() 
         
-def send_email(users_info, ia_identifier):
+def send_email(users_request, ia_identifier):
     """send html email to all requests associated with
     a book."""
     subject = "Your upload is ready!"
-    for u in users_info:
+    for u in users_request:
         try:
             info = json.loads(u)
         except:
             continue
-        email = info['request']['EMAIL']
-        commonsName = info['request']['COMMONSNAME']
-        commons_upload_link = "http://tools.wmflabs.org/ia-upload/commons/fill?iaId=%s&commonsName=%s" %(ia_identifier, commonsName)
+        email = info['email']
+        if email in (None, ""):
+            continue
+        commons_name = info['commons_name']
+        commons_upload_link = "http://tools.wmflabs.org/ia-upload/commons/fill?iaId=%s&commonsName=%s" %(ia_identifier, commons_name)
         msg = MIMEMultipart('alternative')
         msg['Subject'] = subject
         msg['From'] = "tools.bub@tools.wmflabs.org"
@@ -91,22 +93,20 @@ def check_if_upload_ready():
     #global DB
     #DB = mysql_py.db()
     redis = redis_py.Redis()
-    json_data = open('../../settings.json')
-    settings = json.load(json_data)
-    Redis_Key = settings['redis']['key_2']
-    Lock_Key = settings['lock']['key_1']
-    q = redis_py.Queue(Redis_Key)
-    Lock = redis_py.Lock(Lock_Key)
+    redis_key2 = keys.redis_key2
+    lock_key1 = keys.lock_key1
+    q = redis_py.Queue(redis_key2)
+    Lock = redis_py.Lock(lock_key1)
     while True:
-        list_names = q.pop(-1)
-	if list_names is False:
+        book_keys = q.pop(-1)
+	if book_keys is False:
 	    time.sleep(2)
 	    continue
-        for list_name in list_names:
-            ia_identifier = redis.lrange(list_name, 0, 0)[0] 
+        for book_key in book_keys:
+            ia_identifier = redis.get(book_key + ":ia_identifier")
 
             uploaded = 0
-	    r = requests.get('https://archive.org/metadata/%s' %(ia_identifier) ).json()
+            r = requests.get('http://archive.org/metadata/%s' %(ia_identifier) ).json()
             if 'metadata' in r.keys():
                 if 'ocr' in r['metadata'].keys():
                     if r['metadata']['ocr'] == 'language not currently OCRable':
@@ -115,12 +115,14 @@ def check_if_upload_ready():
                 uploaded = 1
             if uploaded != 0:
                 Lock.acquire(timeout = 60*2)
-                users_info = redis.lrange(list_name, 1, -1)
-                redis.delete( list_name )
-                remove_from_db(users_info)
+                users_request = redis.smembers(book_key + ":requests")
+                redis.delete( book_key + ":requests")
+                remove_from_db(users_request)
                 Lock.release()
-                q.remove(list_name)
-                send_email( users_info, ia_identifier )                
+                q.remove(book_key)
+                send_email( users_request, ia_identifier )  
+                OCR_progress_key = book_key + ":OCR_progress"
+                redis.set(OCR_progress_key, 1)              
             else:
                 continue
         time.sleep(2)

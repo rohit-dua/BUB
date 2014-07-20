@@ -29,6 +29,7 @@ from xml.sax.saxutils import escape
 sys.path.append('../lib')
 from bottle import template
 import htmlmin
+import keys
 
 import bridge
 from minify import minify
@@ -42,26 +43,26 @@ class content_head(object):
         
         
 def submit_job(uuid_hash, data):
-    json_data = open('../../settings.json')
-    settings = json.load(json_data)
-    Redis_Key = settings['redis']['key_1']
-    Lock_Key = settings['lock']['key_1']
-    q = redis_py.Queue(Redis_Key)
+    redis_key1 = keys.redis_key1
+    lock_key1 = keys.lock_key1
+    q = redis_py.Queue(redis_key1)
     redis = redis_py.Redis()
-    Redis_Key = settings['redis']['key_3']
+    redis_key3 = keys.redis_key3
     email = data[0] 
     sno = data[1]
-    commonsName = data[2]
+    commons_name = data[2]
     md5_book = data[3]
     Id = data[4]
     library = data[5]    
-    list_name = "%s:%s:%s" %(Redis_Key, library, Id)
-    Lock = redis_py.Lock(Lock_Key)
+    book_key = "%s:%s:%s" %(redis_key3, library, Id)
+    book_request_key = book_key + ":requests"
+    Lock = redis_py.Lock(lock_key1)
     locked = False
-    if redis.exists(list_name):
-         locked = Lock.acquire(timeout = 60)
-    redis.rpush(list_name, """{"request":{"SNO":"%s","EMAIL":"%s","COMMONSNAME":"%s"}}""" %(sno, email, commonsName) )
-    db = mysql_py.db()
+    if redis.exists(book_request_key):
+        locked = Lock.acquire(timeout = 60)          
+    request = dict(sno = sno, email = email, commons_name = commons_name)
+    redis.sadd(book_request_key, json.dumps(request))
+    db = mysql_py.Db()
     redundancy_book = db.execute("SELECT COUNT(*) FROM REQUESTS WHERE MD5_BOOK='%s' AND CONFIRMED=1 AND JOB_SUBMITTED=1;",md5_book)
     if redundancy_book[0] == 0:
         q.add(sno)
@@ -91,8 +92,12 @@ def error_msg(error_no, book=None, email=None):
         return "<div class=\"alert alert-success\"><span class=\"glyphicon glyphicon-thumbs-up\"></span> Thank you Captain!<br>" +\
         "Your request is already being processed.</div>"
     elif error_no == 100:   #success
+        if email not in (None, ""):
+            msg_part = " You will be informed at <a class=\"alert-link\">" + email + "</a> as soon as the upload is ready."
+        else:
+            msg_part = ""
         return "<div class=\"alert alert-success\"><span class=\"glyphicon glyphicon-thumbs-up\"></span> Thank you Captain!<br>" +\
-        "Your request is being processed. It only takes few minutes. You will be informed at <a class=\"alert-link\">" + email + "</a> as soon as the upload is ready." + "</div>"
+        "Your request is being processed. It only takes few minutes."+ msg_part + "</div>"
     return "<div class=\"alert alert-danger\"><span class=\"glyphicon glyphicon-remove\"></span> " + text + "</div>"
     
 
@@ -133,7 +138,7 @@ def store_db(book, uuid):
     uuid_hash = hashlib.md5(uuid).hexdigest()
     md5_sum = hashlib.md5(book.Id + book.library_id + book.email).hexdigest()
     md5_book = hashlib.md5(book.Id + book.library_id).hexdigest()
-    db = mysql_py.db()
+    db = mysql_py.Db()
     redundancy = db.execute("SELECT COUNT(*) FROM REQUESTS WHERE MD5_SUM='%s' AND CONFIRMED=1;",md5_sum)
     if redundancy[0] != 0:
         display(status_no = 50, email=book.email)
@@ -169,7 +174,7 @@ def confirmation_page(book, info):
      _publisher = html_escape(info['publisher']),\
      _publishedDate = html_escape(info['publishedDate']),\
      _description = html_escape(info['description']),\
-     _accessViewStatus = info['accessViewStatus'])
+     _publicDomain = str(info['publicDomain']))
     uuid = set_cookie()
     status = store_db(book, uuid)
     if status == 1:
@@ -183,14 +188,23 @@ def remove_djvu_extension(commonsName):
     return commonsName 
         
 
+def store_book_metadata(library_id, Id):
+    redis = redis_py.Redis()
+    book_metadata = bridge.book_info(library_id, Id)
+    redis_key3 = keys.redis_key3
+    book_key = "%s:%s:%s" %(redis_key3, library_id, Id)
+    metadata_key = book_key + ":metadata"
+    redis.set(metadata_key, json.dumps(book_metadata) )
+
+
 def manager():
     form = cgi.FieldStorage()
-    if (form.has_key("library") and form.has_key("Id") and form.has_key("commonsName") and form.has_key("email")):
+    if (form.has_key("library") and form.has_key("Id") ):
         library_id = html_escape(form["library"].value[:40])
         Id = html_escape(form["Id"].value[:150])
-        commonsName = html_escape(remove_djvu_extension(form["commonsName"].value[:40])) 
-        email = html_escape(form["email"].value[:40])
-        book = bridge.fields(library_id, Id, commonsName, email)
+        commonsName = html_escape(remove_djvu_extension(form["commonsName"].value[:40]))  if form.has_key('commonsName') else ""
+        email = html_escape(form["email"].value[:40]) if form.has_key("email") else ""
+        book = bridge.fields(library_id, Id, commonsName, email) 
         fields_status = book.verify_fields()
         if fields_status != 0:
             display(fields_status, book)
@@ -213,7 +227,7 @@ def manager():
                 except KeyError:
                     display(status_no = 0)
                     return 0
-                db = mysql_py.db()
+                db = mysql_py.Db()
                 command = "UPDATE REQUESTS SET CONFIRMED = 1 WHERE UUID_HASH = '%s';"
                 try:
                     db.execute(command, uuid_hash)
@@ -234,7 +248,8 @@ def manager():
                 except:
                     display(status_no = 6)
                     db.close()
-                    return 1     
+                    return 1   
+                store_book_metadata(library, Id)  
                 display(status_no = 100, email = email)
                 submit_job(uuid_hash, data)
                 return 0

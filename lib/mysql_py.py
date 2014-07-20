@@ -19,18 +19,16 @@
 
 
 import MySQLdb
-import json
+
+import keys
 
     
-class db(object):
+class Db(object):
     def __init__(self):
-        json_data = open('../../settings.json')
-        settings = json.load(json_data)
-        db_host = settings['db']['host']
-        db_username = settings['db']['username']
-        db_password = settings['db']['password']
-        db_database = settings['db']['database']
-        json_data.close()
+        db_host = keys.db_host
+        db_username = keys.db_username
+        db_password = keys.db_password
+        db_database = keys.db_database
         self.database = MySQLdb.connect(db_host, db_username, db_password, db_database, use_unicode=True, charset="utf8");
         self.cursor = self.database.cursor()
         

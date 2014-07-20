@@ -27,6 +27,7 @@ sys.path.append('../lib')
 from validate_email import validate_email 
 
 sys.path.append('../digi-lib')
+# used in dynamic import
 
 def lib_module(library_id):
     """Return tuple (module_name, library_name) associated to library_id extracted from config"""
@@ -96,18 +97,18 @@ class fields(object):
         if self.lib_module_name == 'None':
             return 4
         else:
-            commons_name_status = commons_name_check(self.commonsName)
-            if commons_name_status != True:
-                return 3
+	    if self.commonsName not in (None, ""):
+                commons_name_status = commons_name_check(self.commonsName)
+                if commons_name_status != True:
+                    return 3
+            id_status = self.lib_imported.verify_id(self.Id)
+            if id_status != 0:
+                return id_status
             else:
-                id_status = self.lib_imported.verify_id(self.Id)
-                if id_status != 0:
-                    return id_status
+                if validate_email(self.email) != True and self.email not in (None, ""):
+                    return 5
                 else:
-                    if validate_email(self.email) != True:
-                        return 5
-                    else:
-                        return 0
+                    return 0
                         
             
             
