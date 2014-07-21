@@ -76,7 +76,7 @@ def download_book(library, Id):
 
         
 class fields(object):
-    """Verfiy the input fields (Return error codes-
+    """Verify the input fields (Return error codes-
     0: No error,
     3: commonsName invalid,
     4: library invalid,
