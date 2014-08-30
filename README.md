@@ -1,7 +1,7 @@
 # BUB : Book Uploader Bot
 
 * Author: Rohit Dua
-* Hosted : [http://tools.wmflabs.org/bub](http://tools.wmflabs.org/bub/)
+* Hosted : [http://tools.wmflabs.org/bub/](http://tools.wmflabs.org/bub/)
 * Email: 8ohit.dua AT gmail DOT com
 * Originally created  to contribute to [Wikimedia Commons](http://commons.wikimedia.org) and [Internet Archive](http://archive.org)
 * LICENSE : [GNU GENERAL PUBLIC LICENSE Version 3](http://tools.wmflabs.org/bub/license/)
