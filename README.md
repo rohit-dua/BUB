@@ -1,10 +1,10 @@
 # BUB : Book Uploader Bot
 
 * Author: Rohit Dua
-* Hosted : [http://tools.wmflabs.org/bub](http://tools.wmflabs.org/bub)
+* Hosted : [http://tools.wmflabs.org/bub](http://tools.wmflabs.org/bub/)
 * Email: 8ohit.dua AT gmail DOT com
 * Originally created  to contribute to [Wikimedia Commons](http://commons.wikimedia.org) and [Internet Archive](http://archive.org)
-* LICENSE : [GNU GENERAL PUBLIC LICENSE Version 3](http://tools.wmflabs.org/bub/license)
+* LICENSE : [GNU GENERAL PUBLIC LICENSE Version 3](http://tools.wmflabs.org/bub/license/)
 
 BUB is a web-tool built in Python that downloads books from public libraries like Google-Books, and then uploads them to the [Internet Archive](http://archive.org) and Wikimedia Commons with the help of [IA-Upload tool](http://tools.wmflabs.org/ia-upload/commons/init).  
 
@@ -19,7 +19,7 @@ BUB is a web-tool built in Python that downloads books from public libraries lik
 
 ## Components
 
-The web-front code resides inside the /app directory. The /digi_lib contains the modules associated with each public library.
+The web-front code resides inside the /app directory. The /digi-lib contains the modules associated with each public library.
 The bot code is inside /bot directory.
 
 ## Contributing
