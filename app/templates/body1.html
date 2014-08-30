@@ -4,8 +4,8 @@
           <legend>Upload File from Libraries</legend>
 
           <!-- Drop-Down: LIBRARY -->
-	  <div class="form-group">
-		  <label class="col-md-2 control-label" for="library"></label>
+          <div class="form-group">
+            <label class="col-md-2 control-label" for="library"></label>
             <div class="col-md-4">
               <select id="library" name="library" class="form-control">
                 <option value="gb">Google-Books</option>
@@ -16,44 +16,33 @@
 
           <!-- Text input: ID/URL-->
           <div class="form-group {{'has-error' if _errorNo == 1 or _errorNo == 2 else ''}}" >
-		  <label class="col-md-2 control-label" for="Id"></label>  	  
-		  <div class="col-md-8">
-	      <input id="Id" name="Id" placeholder="ID/URL of the file" class="form-control input-md" required="" type="text" maxlength="150" value = "{{_id if _id else ''}}"> 
-	    </div>
-	    <a data-toggle="tooltip" data-html="true" data-placement="auto left" animation=true title="<B>Unique ID or URL of the book.</B><br><I>eg: http://google.com/books?id=UUYcn_1x2goC</I> OR <I>UUYcn_1x2goC</I>"><B>?</B></a>            
-	    </div>
-
-          <!-- Appended Input: COMMONSNAME-->
-	  <div class="form-group {{'has-error' if _errorNo == 3 else ''}}">
-		  <label class="col-md-2 control-label" for="commonsName"></label>
+            <label class="col-md-2 control-label" for="Id"></label>  
             <div class="col-md-8">
-		    <div class="input-group">
-			    <span class="input-group-addon">
-				    <input type="checkbox" name="checkbox" onclick="toggle_state('commonsName', this.checked)" checked>
-		            </span>
-                <input id="commonsName" name="commonsName" class="form-control" placeholder="Filename for Commons" required="" type="text" maxlength="250" value = "{{_commonsName if _commonsName else ''}}">
-		<span class="input-group-addon">.djvu</span>
-	</div>
-	</div>
-	<a data-toggle="tooltip" data-html="true" data-pllacement="auto left" animation=true title="<B>Name of the book for commons.</B><br>Uncheck to only upload to archive.<I>(can be changed later.)</I>"><B>?</B></a>
+              <input id="Id" name="Id" placeholder="ID/URL of the file" class="form-control input-md" required="" type="text" maxlength="150" value = "{{_id if _id else ''}}"> 
+            </div>
           </div>
 
+          <!-- Appended Input: COMMONSNAME-->
+          <div class="form-group {{'has-error' if _errorNo == 3 else ''}}">
+            <label class="col-md-2 control-label" for="commonsName"></label>
+            <div class="col-md-8">
+              <div class="input-group">
+                <input id="commonsName" name="commonsName" class="form-control" placeholder="Filename for Commons" required="" type="text" maxlength="250" value = "{{_commonsName if _commonsName else ''}}">
+                <span class="input-group-addon">.djvu</span>
+              </div>
+    
+            </div>
+          </div>
           <!-- Text input: EMAIL-->
-	  <div class="form-group {{'has-error' if _errorNo == 5 else ''}}">
-		  <label class="col-md-2 control-label" for="email"></label>
-	   <div class="col-md-8">
-             <div class="input-group">
-               <span class="input-group-addon">
-		 <input type="checkbox" name="checkbox" onclick="toggle_state('email', this.checked)" checked>
-	       </span>
-	       <input id="email" name="email" placeholder="Email Address" class="form-control input-md" required="" type="email" maxlength="100" value = "{{_email if _email else ''}}">
-       </div>
-       </div>
-       <a data-toggle="tooltip" data-html="true" data-placement="auto left" animation=true title="<B>This email-id will be used to notify you as soon as the upload is ready.</B><br><I>(we respect privacy!)</I><br>Uncheck to continue without notification."><B>?</B></a>
+          <div class="form-group {{'has-error' if _errorNo == 5 else ''}}">
+            <label class="col-md-2 control-label" for="email"></label>  
+            <div class="col-md-8">
+              <input id="email" name="email" placeholder="Email Address" class="form-control input-md" required="" type="email" maxlength="100" value = "{{_email if _email else ''}}">
+            </div>
           </div>
 
           <!-- Button -->
-	  <div class="form-group">
+          <div class="form-group">
             <label class="col-md-2 control-label" for="upload"></label>
             <div class="col-md-8">
               <button id="upload" name="upload" type="submit" class="btn btn-block btn-primary"><span class="glyphicon glyphicon-upload"></span> Upload</button>
@@ -64,19 +53,5 @@
       </form>
     </div>
   </div>
-
-
-<script>
-<!--
-function toggle_state(id,status)
-{
-status=!status;
-document.getElementById(id).disabled = status;
-}
-//-->
-</script>
-<script>
-   $(function () { $("[data-toggle='tooltip']").tooltip(); });
-</script>
 </body>
 </html>

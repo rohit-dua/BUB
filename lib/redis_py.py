@@ -20,21 +20,26 @@
 
 import redis
 import time
-
-import keys
+import json
 
 
 def Redis():
-    redis_host = keys.redis_host
-    redis_port = keys.redis_port
-    return redis.Redis(host=redis_host, port=redis_port)
+    json_data = open('../../settings.json')
+    settings = json.load(json_data)
+    REDIS_HOST = settings['redis']['host']
+    REDIS_PORT = int(settings['redis']['port'])
+    return redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
     
     
 class Lock(object):
     """A Lock based on Redis Key value system."""
-    def __init__(self, key):     
+    def __init__(self, key):
+        json_data = open('../../settings.json')
+        settings = json.load(json_data)
+        REDIS_HOST = settings['redis']['host']
+        REDIS_PORT = int(settings['redis']['port'])        
         self.key = key
-        self.redis = Redis()
+        self.redis = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
         
     def acquire(self, timeout=0):
         while self.redis.get(self.key) is '1':
@@ -51,9 +56,13 @@ class Lock(object):
 
 class Queue(object):
     """A Queue based on the Redis sorted set data type."""
-    def __init__(self, key):        
+    def __init__(self, key):
+        json_data = open('../../settings.json')
+        settings = json.load(json_data)
+        REDIS_HOST = settings['redis']['host']
+        REDIS_PORT = int(settings['redis']['port'])        
         self.key = key
-        self.redis = Redis()
+        self.redis = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
 
     def add(self, data):
         """Add an item to the queue."""
@@ -73,8 +82,4 @@ class Queue(object):
     def remove(self, data):
         "Remove an item from the Queue"
         return self.redis.zrem(self.key, data)
-        
-    def index(self, data):
-        "Returns size of queue"
-        return self.redis.zrank(self.key, data)
 

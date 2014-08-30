@@ -33,11 +33,9 @@ sys.path.append('../lib')
 import internetarchive as ia
 import redis_py
 import mysql_py
-import keys
 
 sys.path.append('../app')
 import bridge
-
 
 
 def lang_code(code):
@@ -64,7 +62,7 @@ def lang_code(code):
         'it':'Italian',
         'ja':'Japanese',
         'ko':'Korean',
-	    'la':'Latin',
+	'la':'Latin',
         'lv':'Latvian',
         'lt':'Lithuanian',
         'no':'Norwegian',
@@ -86,33 +84,40 @@ def lang_code(code):
     try:
         return language[code[0]]
     except:
-        return code[0]
+        return code
 
 
-class IaWorker(object):
+def submit_to_redis_list(fields, value):
+    """Add value to redis list(leftmost)
+     and name of list to redis queue"""
+    json_data = open('../../settings.json')
+    settings = json.load(json_data)
+    Redis_Key = settings['redis']['key_3']
+    list_name = "%s:%s:%s" %(Redis_Key, fields.library, fields.Id)
+    redis = redis_py.Redis()        
+    redis.lpush(list_name, value)     
+    Redis_Key = settings['redis']['key_2']
+    q = redis_py.Queue(Redis_Key)
+    q.add( list_name )
+
+
+class ia_worker(object):
     """Internet-archive worker: perform upload/ file checks/ metadata extraction"""
     def __init__(self, sno):
         """Get metadata"""
-        db = mysql_py.Db()
+        db = mysql_py.db()
         values = db.execute('SELECT LIBRARY,ID FROM REQUESTS WHERE SNO = %s;',sno)
         db.close()
         self.library = values[0]
-        self.Id = values[1]
-        self.library_name = bridge.lib_module(self.library)[1]       
-        redis_key3 = keys.redis_key3
-        self.book_key = "%s:%s:%s" %(redis_key3, self.library, self.Id)      
-        metadata_key = self.book_key + ":metadata"
-	self.redis = redis_py.Redis()
-        metadata = self.redis.get(metadata_key)
-        info = json.loads(metadata)      
+        self.Id = values[1]       
+	self.library_name = bridge.lib_module(self.library)[1]
+        info = bridge.book_info(self.library, self.Id)
         self.title = info['title'].encode("utf-8") + " " + info['subtitle'].encode("utf-8")
         self.author = info['author'].encode("utf-8")
         self.publisher = info['publisher'].encode("utf-8")
         self.description = info['description'].replace("\n", "").encode("utf-8")
         self.printType = info['printType'].encode("utf-8")
         self.publishedDate = info['publishedDate'].encode("utf-8")
-        self.infoLink = info['infoLink']
-	self.publicDomain = info['publicDomain']
         language_code = info['language'].encode("utf-8")
         if self.publishedDate not in (None,"") :
             self.year = parser.parse(self.publishedDate).year
@@ -128,8 +133,7 @@ class IaWorker(object):
             self.language = ""
         self.ia_identifier = "bub_%s_%s" %(self.library, self.Id)
         self.pdf_path = "./downloads/%s_%s.pdf" %(self.library, self.Id)
-        
-	#logging.info("called IaWorker")
+	#logging.info("called ia_worker")
         
      
     def check_in_IA(self):
@@ -141,10 +145,8 @@ class IaWorker(object):
         if int(ia_info['response']['numFound']) != 0:
             if ia_info['response']['docs'][0]['identifier'] == self.ia_identifier:
                 #logging.info("%s uploaded by BUB on IA" %self.ia_identifier)
-                ia_response_key = self.book_key + ":ia_response"
-                self.redis.set(ia_response_key, 1)
                 return self.ia_identifier
-	    #logging.info("%s not Uploaded to IA using bub." %self.ia_identifier)
+	#logging.info("%s not Uploaded to IA using bub." %self.ia_identifier)
         r = requests.get("""http://archive.org/advancedsearch.php?q=%s&fl[]=creator&fl[]=date&fl[]=identifier&fl[]=language&
 	fl[]=publisher&fl[]=title&sort[]=&sort[]=&sort[]=&rows=20&page=1&output=json""" % re.sub(r"""[!#\n|^\\\"~()\[\]\-]""", '', self.title)[:365] )
         ia_info = r.json()
@@ -201,13 +203,11 @@ class IaWorker(object):
             score_card.append( [match_score, threshold_score] )
         max_score = max(score_card)    
         if max_score[0] > max_score[1]:
-            ia_response_key = self.book_key + ":ia_response"
-            self.redis.set(ia_response_key, 1)
             #logging.info("found on IA %s" %ia_info['response']['docs'][score_card.index(max_score)]['identifier'])
             return ia_info['response']['docs'][score_card.index(max_score)]['identifier']
         else:
 	    #logging.info(" %s not Uploaded on IA" %self.ia_identifier)
-	    return False    
+            return False    
 
         
     def upload_to_IA(self): 
@@ -219,35 +219,25 @@ class IaWorker(object):
 	  title = re.sub(r"""[!#\n|^\\\"~()\[\]\-]""",'',self.title)[:365],
           publisher = self.publisher,
           description = re.sub(r"""[!#\n|^\\\"~()\[\]\-]""",'',self.description),
-          source = self.infoLink,
+          source = self.library_name,
           language = self.language,
           year = self.year,
           date = self.publishedDate,
           subject = "bub_upload",
-	  licenseurl = "http://creativecommons.org/publicdomain/mark/1.0/" if self.publicDomain == True else "",
+	  licenseurl = "http://creativecommons.org/publicdomain/mark/1.0/",
 	  scanner = self.library_name,
           Digitizing_sponsor = self.library_name )
         filename = "./downloads/%s_%s.pdf" %(self.library, self.Id)
-        S3_access_key = keys.S3_access_key
-        S3_secret_key = keys.S3_secret_key
+        json_data = open('../../settings.json')
+        settings = json.load(json_data)
+        S3_access_key = settings['ia']['S3_access_key']
+        S3_secret_key = settings['ia']['S3_secret_key']
         status = item.upload(filename, access_key = S3_access_key, secret_key = S3_secret_key, metadata=metadata)
 	#logging.info("%s uploaded to IA" %self.ia_identifier)
         return status
-
-
-    def submit_OCR_wait_job(self, value):
-        """Add value to redis list(leftmost)
-         and name of list to redis queue"""
-        redis_key3 = keys.redis_key3
-        book_key = "%s:%s:%s" %(redis_key3, self.library, self.Id)
-        key_ia_identifier = book_key + ":ia_identifier"       
-        self.redis.set(key_ia_identifier, value)  
-        redis_key2 = keys.redis_key2
-        q = redis_py.Queue(redis_key2)
-        q.add( book_key )    
         
 
-class QueueHandler(object):
+class queueHandler(object):
     def __init__(self, redis_key):
         self.queue = redis_py.Queue(redis_key)
     
@@ -270,30 +260,28 @@ def manager(q):
     while True:
         sno = q.pop_and_remove()
         print "GOT SNO:"+str(sno)
-        ia_w = IaWorker(sno)
+        ia_w = ia_worker(sno)
         ia_identifier_found = ia_w.check_in_IA()
         if ia_identifier_found is not False:
-            ia_w.submit_OCR_wait_job(ia_identifier_found)
+            submit_to_redis_list(ia_w, ia_identifier_found)
             continue
         if not os.path.isfile(ia_w.pdf_path):
             download_status = bridge.download_book(ia_w.library, ia_w.Id)
             if download_status != 0:
                 continue
-        download_progress_key = ia_w.book_key + ":download_progress"
-        ia_w.redis.set(download_progress_key, 1)
 	#logging.error("Download error id: %s, library: %s" %(ia_w.Id,ia_w.library) )   
         upload_status = ia_w.upload_to_IA()
         if str(upload_status) == "[<Response [200]>]":
-            upload_progress_key = ia_w.book_key + ":upload_progress"
-            ia_w.redis.set(upload_progress_key, 1)
-            ia_w.submit_OCR_wait_job(ia_w.ia_identifier)
+            submit_to_redis_list(ia_w, ia_w.ia_identifier)
 	#logging.info( "IA upload:" + str(upload_status))
  
         
 def main():
     #logging.info("worker.py started")
-    redis_key1 = keys.redis_key1 
-    q = QueueHandler(redis_key1)  
+    json_data = open('../../settings.json')
+    settings = json.load(json_data)
+    redis_key = settings['redis']['key_1']  
+    q = queueHandler(redis_key)  
     manager(q)            
         
         
