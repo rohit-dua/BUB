@@ -181,6 +181,8 @@ def download_book(Id):
         page_html = response.text
         image_url = get_image_url_from_page(page_html)
         image_url = re.sub('w=\d+','w=2500',image_url)
+	#image_url = re.sub('w\\\\x\d+','w=2500' ,image_url)
+        image_url = re.sub('w\\\\x3d\d+','w\\x3d2500' ,image_url)
         output_file =  add_serial_number_to_name("./downloads/gb_%s_" %Id, page_no+1)
         download_image_to_file(image_url, output_file)
     final_output_file = "./downloads/bub_gb_%s_images.tar" %Id
