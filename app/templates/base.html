@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+	<meta charset="UTF-8">
+	<title>{% if subtitle %}{% if subtitle != '' %}{{subtitle}} | {% endif %}{% endif %}BUB
+	</title>
+        <meta name="description" content="Web tool to transfer/upload books directly from libraries like Google Books to Internet Archive." />
+        <meta name="robots" content="index, follow" />
+        <meta name="keywords" content="internet archive, archive, upload to archive, google books, hathitrust, dspace, brasiliana, books, ebooks, libraries, digital library, download books, commons, mediawiki, bub, book uploader bot, digitized, text" />
+	<link rel="stylesheet" type=text/css href="{{ url_for('static', filename='bootstrap/bootstrap.min.css') }}" />	
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	<script src="{{ url_for('static', filename='bootstrap/bootstrap.min.js') }}"></script>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	{% if auto_refresh %}<meta http-equiv="refresh" content="{{auto_refresh}}">{% endif %}
+	<style type="text/css">
+    html, body { background-color: #eee; }
+    .green {
+    color: green;
+    }
+    .orange {
+    color: #B95F00;
+    }
+    .blue {
+    color: #2A6496;}
+    .form-control::-webkit-input-placeholder { /* WebKit browsers */
+    color:    #626262;
+    }
+    .form-control::-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+    color:    #626262;
+    }
+    .form-control::-moz-placeholder { /* Mozilla Firefox 19+ */
+    color:    #626262;
+    }
+    .form-control::-ms-input-placeholder { /* Internet Explorer 10+ */
+    color:    #626262;
+    }
+    .content {
+    background-color: #fff;
+    padding: 20px;
+    margin: 0 -20px; /* negative indent the amount of the padding to maintain the grid system */
+    -webkit-border-radius: 0 0 6px 6px;
+    -moz-border-radius: 0 0 6px 6px;
+    border-radius: 0 0 6px 6
+    -webkit-box-shadow: 0 1px 2px rgba(0,0,0,.15);
+    -moz-box-shadow: 0 1px 2px rgba(0,0,0,.15);
+    box-shadow: 0 1px 2px rgba(0,0,0,.15);
+    }
+    .page-header {
+    background-color: #f5f5f5;
+    padding: 5px 20px 10px;
+    margin: -20px -20px 20px;
+    }
+    @font-face { font-family: coming-soon; src: url('{{ url_for('static', filename='fonts/coming-soon.ttf') }}'); }
+    div { font-family: 'coming-soon'; }
+	</style>
+</head>
+<body>
+  <div class="container">
+    <div class="content">
+      <div class="page-header">
+        <h1><img src="{{ url_for('static', filename='images/robot_bub.png') }}" title="BUB" width="40">&nbsp BUB&nbsp:&nbsp Book Uploader Bot</h1>
+      </div>
+      <ul class="nav nav-pills nav-justified">
+        <li><a href="{{ url_for('index') }}">Home</a></li>
+        <li><a href="{{ url_for('about') }}">About BUB</a></li>
+	<li><a href="{{ url_for('queue') }}">Queue</a></li>
+	<li><a href="{{ url_for('admin') }}">Mass-Upload</a></li>
+        <li><a style="margin:0px;padding:0px;margin-top:4px" href="https://tools.wmflabs.org/"><img src="//wikitech.wikimedia.org/w/images/c/cf/Labslogo_thumb.png" title="Powered by Wikimedia Labs" alt="wikimedia Labs" border="0" width="32" ></a></li>
+      </ul>
+      {% block error %}{% endblock %}
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+</body>
+</html>

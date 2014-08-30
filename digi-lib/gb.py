@@ -18,16 +18,36 @@
 # Maintained at https://github.com/rohit-dua/BUB
 
 
-import requests
 import re
-import json
 import subprocess
+import json
+import sys
+import inspect
+import time
+import urllib
+#import requests # --  imported from retry (with retry wrapper)
+from PIL import Image
+
+import binascii
+
+sys.path.append('./utils')
+sys.path.append('../utils')
+import keys, redis_py
+from retry import retry, requests
 
 
-def books_api_key():
-    json_data = open('../../settings.json')
-    settings = json.load(json_data)
-    return str(settings['google_books']['key_1'])
+
+log = open('/data/project/bub/public_html/BUB/bot/gb.log', 'a')
+key = keys.google_books_key1 
+
+def asciirepl(match):
+  # replace the hexadecimal characters with ascii characters
+  s = match.group()  
+  return binascii.unhexlify(s[2:])  
+
+def reformat_content(data):
+  p = re.compile(r'\\x(\w{2})')
+  return p.sub(asciirepl, data)
 
 
 def get_id_from_string(s):
@@ -40,39 +60,47 @@ def get_id_from_string(s):
         return None
     return match.group(1)
     
-
+@retry(delay = 2)
 def verify_id(Id_string):
     """Verify the Id and accessViewStatus(public-domain) for the book"""
     Id = get_id_from_string(Id_string)
     if Id == None:
         return 1
-    key = books_api_key()
     try:
-        r = requests.get('https://www.googleapis.com/books/v1/volumes/%s?key=%s' %(Id, key), headers={'referer': "tools.wmflabs.org/bub"} )
+        r = requests.get('https://www.googleapis.com/books/v1/volumes/%s?fields=accessInfo%%2Fviewability&key=%s' %(Id, key), headers={'referer': "tools.wmflabs.org/bub"} )
     except:
-	    #logging.error("error requests: %s" %Id)
         return 1
     if r.status_code == 404:
 	return 1
+    if r.status_code == 403:     #when GB Daily Quota(1000 requests) finished
+        return 7
     if r.status_code != 200:
         return 10
     else:
         book_info = r.json()
-        if book_info['accessInfo']['publicDomain'] == False:
+        if book_info['accessInfo']['viewability'] != "ALL_PAGES":
             return 2
         else:
             return 0
 
-
+@retry(delay = 2)
 def metadata(Id):
     """Return book information and meta-data"""
     Id = get_id_from_string(Id)
-    key = books_api_key()
     r = requests.get('https://www.googleapis.com/books/v1/volumes/%s?key=%s' %(Id, key), headers={'referer': "tools.wmflabs.org/bub"} )
+    if r.status_code == 404:
+	return 1
+    if r.status_code == 403:
+        return 7
+    if r.status_code != 200:
+        return 10
     book_info = r.json()
+    if book_info['accessInfo']['viewability'] != "ALL_PAGES":
+        return 2
     keys1 = book_info['volumeInfo'].keys()
     return dict(
         image_url = book_info['volumeInfo']['imageLinks']['small'] if 'small' in book_info['volumeInfo']['imageLinks'].keys() else "",
+        thumbnail_url = book_info['volumeInfo']['imageLinks']['thumbnail'] if 'thumbnail' in book_info['volumeInfo']['imageLinks'].keys() else "",
         printType = book_info['volumeInfo']['printType'] if 'printType' in book_info['volumeInfo'].keys() else "",
         title = book_info['volumeInfo']['title'] if 'title' in keys1 else "",
         subtitle = book_info['volumeInfo']['subtitle'] if 'subtitle' in keys1 else "",
@@ -81,22 +109,32 @@ def metadata(Id):
         publishedDate = book_info['volumeInfo']['publishedDate'] if 'publishedDate' in keys1 else "",
         description = re.sub('<[^<]+?>', '', book_info['volumeInfo']['description']) if 'description' in keys1 else "",
         infoLink = book_info['volumeInfo']['infoLink'] if 'infoLink' in keys1 else "",
-        accessViewStatus = book_info['accessInfo']['accessViewStatus']  if 'accessViewStatus' in book_info['accessInfo'].keys() else "",
-        language = book_info['volumeInfo']['language'] if 'language' in book_info['volumeInfo'].keys() else ""    
+        publicDomain = book_info['accessInfo']['publicDomain'] if 'publicDomain' in book_info['accessInfo'].keys() else "",
+        language = book_info['volumeInfo']['language'] if 'language' in book_info['volumeInfo'].keys() else "",
+        scanner = "google",
+        sponser = "Google"   
     )
             
             
 def get_image_url_from_page(html):
     """Get image url from page html."""
-    match = re.search(r"preloadImg.src = '([^']*?)'", html)
+    match = re.search("preloadImg.src = '([^']*?)'", html)
     return match.group(1) 
 
-    
+
+def verify_image(output_file):
+    v_image = Image.open(output_file)
+    v_image.verify() 
+
+
+@retry(delay = 2, logger = log, backoff = 2, tries = 4)
 def download_image_to_file(image_url, output_file):
-    """Download image from url"""    
+    """Download image from url"""  
+    image_url = reformat_content(image_url)
     r = requests.get(image_url, stream=True)
     if r.status_code == 200:
         image_type = r.headers['content-type']
+	print image_type
         if image_type == 'image/jpeg':
             image_ext = 'jpeg'
         else:
@@ -106,13 +144,30 @@ def download_image_to_file(image_url, output_file):
         with open(output_file, 'wb') as f:
             for chunk in r.iter_content(1024):
                 f.write(chunk)
-	#logging.info("Downloaded %s" %(output_file))
+        verify_image(output_file)
         
-   
+
+def add_serial_number_to_name(output_file, sno):
+    """Convert the name to the form 001, 002..010, 011"""
+    sno = str(sno)
+    zeros_padding = 6-len(sno)
+    output_file = output_file + "0"*zeros_padding + sno + "."
+    return output_file      
+
+
+def store_output_file_name(Id, output_file):
+    """Save output file name to redis-memory"""
+    redis = redis_py.Redis()
+    redis_key3 = keys.redis_key3
+    book_key = redis_key3+":gb:%s" %Id
+    output_file_key = book_key + ":output_file"
+    redis.set(output_file_key, output_file)
+
+@retry(logger = log, delay = 2, backoff = 2, tries = 5) 
 def download_book(Id):  
-    """Download book images from GB and convert them to one pdf
-    downloads path- bot/downloads/<LIBRARY-ID>_<BOOK-ID>.pdf"""   
+    """Download book images from GB and tar them to one file"""   
     s = requests.Session()
+    Id = get_id_from_string(Id)
     cover_url = "http://books.google.com/books?id=%s&hl=en&printsec=frontcover" % Id
     cover_html = s.get(cover_url).text
     match = re.search(r'_OC_Run\((.*?)\);', cover_html)
@@ -125,12 +180,15 @@ def download_book(Id):
         response = s.get(page_url)
         page_html = response.text
         image_url = get_image_url_from_page(page_html)
-        output_file = "./downloads/gb_" + str(Id) + "_" + str((page_no+1)) + "."
+        image_url = re.sub('w=\d+','w=2500',image_url)
+        output_file =  add_serial_number_to_name("./downloads/gb_%s_" %Id, page_no+1)
         download_image_to_file(image_url, output_file)
-    total_pages = page_no+1
-    command = "for name in ./downloads/gb_%s_*; do convert $name -units PixelsPerInch -density 300x300 $(echo ${name%%.*}).pdf; done; gs -r300 -dBATCH -dNOPAUSE -sDEVICE=pdfwrite -sOutputFile=./downloads/gb_%s.pdf $(ls -1v ./downloads/gb_%s_*.pdf);" %(Id,Id,Id)
+    final_output_file = "./downloads/bub_gb_%s_images.tar" %Id
+    command = "tar -cf %s --directory=./downloads $(ls ./downloads/gb_%s_*| xargs -n1 basename)" %(final_output_file, Id)
     status = subprocess.check_call(command, shell=True)
+    store_output_file_name(Id, final_output_file)
     if status == 0:
         command = "rm ./downloads/gb_%s_*" %(Id)
         status = subprocess.check_call(command, shell=True)
     return 0
+    

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+  <div class="row clearfix">
+    <div class="col-md-12 column">
+      <div class="media">
+      <a href="{{book_info.infoLink}}" class="pull-left">
+      <br>
+      <img src="{{book_info.image_url}}" class="img-responsive" alt='cover-image' width='300px' height='400px'>
+      </a>
+        <div class="clearfix">
+          <div class="media-body" data-html="true">
+          <br>
+          <a href="{{book_info.infoLink}}"> <h3 class="media-heading">{{book_info.title}}</h3></a>
+            <div class="panel-body" data-html="true">
+            {{book_info.author}}<br>{{book_info.publisher}}<br>{{book_info.publishedDate}}<br>
+            {% if book_info.language %}language : {{book_info.language}}<br>{% endif %}
+            <B>publicDomain : {{book_info.publicDomain}}</B>
+            </div> {{book_info.description}} 
+          </div>		
+        </div>
+      </div>
+      <form method="POST" action="/bub/confirm" role="form">
+        {{form.hidden_tag()}}
+        <div class="media">
+          <div class="row clearfix">
+            <div class="form-group">
+            <label class="col-md-2 control-label" for="upload"></label>
+              <div class="col-md-8">
+                <button id="upload" name="upload" type="submit" value="confirm" class="btn btn-block btn-primary"><span class="glyphicon glyphicon-ok"></span> Confirm</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

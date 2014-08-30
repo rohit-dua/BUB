@@ -1,9 +1,10 @@
 LIBRARY-ID                MODULE-NAME(without .py)           LIBRARY-NAME
 gb                        gb                                 Google-Books
-
-
-#library                 #library_module                   #library-xyz
-
+br                        br                                 Brasiliana-USP
+usp                       usp                                DSpace-based-library
+ht                        ht                                 HathiTrust
+mdc                       mdc                                Digital-Memory-of-Catalonia(mdc)
+man                       man                                Manual-Wildcard
 
 #end          
 # For new library, add the following details above(seperate by spaces):

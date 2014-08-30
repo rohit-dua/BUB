@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+<div class="media">
+    <h4 class="media-heading">Prove you have blood in your veins!</h4>
+</div>
+<br>
+
+<form method="POST" action="" role="form" class="form-horizontal">
+    {{form.hidden_tag()}}
+    <fieldset>
+
+    <!-- Text input: EMAIL-->
+    <div class="form-group {% if _errorNo == 5 %}has-error{% endif %}">
+    <label class="col-md-2 control-label" for="email"></label>  
+      <div class="col-md-8">
+        <div class="input-group">
+          <span class="input-group-addon">
+		       <input type="checkbox" name="checkbox" onclick="toggle_state('email', this.checked)" checked>
+	        </span>
+          <input id="email" name="email" placeholder="Email Address" class="form-control input-md" required="" type="email" maxlength="100" {% if form.email.data %}value = "{{form.email.data}}"{% endif %}>
+        </div>
+      </div>
+      <a data-toggle="tooltip" data-html="true" data-placement="auto left" animation=true title="<B>This email-id will be used to notify you as soon as the upload is ready.</B><br><I>(we respect privacy!)</I>"><B><span class="glyphicon glyphicon-info-sign"></span></B></a>
+    </div>
+    
+    <div class="form-group">
+     <label class="col-md-2 control-label"></label>
+      <div class="col-md-8">
+        {{ form.recaptcha }}
+      </div>
+    </div>
+    
+    <!-- Button -->
+    <div class="form-group">
+    <label class="col-md-2 control-label" for="upload"></label>
+      <div class="col-md-8">
+        <button id="enter" name="enter" type="submit" class="btn btn-block btn-primary"><span class="glyphicon glyphicon-lock"></span> Enter</button>
+      </div>
+    </div>
+    
+  </fieldset>
+</form>
+
+<script>
+  function toggle_state(id,status)
+  {
+    status=!status;
+    document.getElementById(id).disabled = status;
+  }
+  $(function () { $("[data-toggle='tooltip']").tooltip(); });
+  
+</script>
+{% endblock %}

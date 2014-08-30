@@ -1,0 +1,26 @@
+<html>
+    <body>
+        <p>Hi!<br><br>
+        {% if no_of_uploads %}
+            Your {{no_of_uploads}} mass-uploads are ready in the Internet-archive!
+        {% elif ia_identifier is string %}            
+            Your <a href ='http://archive.org/details/{{ia_identifier}}'>upload</a> is ready in Internet-archive!<br><br>
+            <a href='http://tools.wmflabs.org/ia-upload/commons/fill?iaId={{ia_identifier}}&commonsName=type+your+name'>Click here</a> to upload the book to commons.
+        {% else %}
+            Your upload was stopped.<br>
+            Similar uploads were found on the internet archive:<br>
+            {% for identifier in ia_identifier %}
+            <a href ='http://archive.org/details/{{identifier}}'>File {{loop.index}}</a>&nbsp;&nbsp;
+                <a href='http://tools.wmflabs.org/ia-upload/commons/fill?iaId={{identifier}}&commonsName=type+your+name'>Upload to Commons</a><br>
+            {% endfor %}
+            <br>
+            <a href='{{reupload_link}}'>Click here if you still wish to upload the file to archive.</a>
+        {% endif %}
+        </p>
+        <br>
+	<p style="font-size:small;-webkit-text-size-adjust:none;color:#666;">{{random}}<br>&mdash;<br>
+        This is an automatically generated email, please do not reply.<br>                     
+        <a href='http://tools.wmflabs.org/bub/'>BUB : Book Uploader Bot</a></p>
+    </body>
+</html>
+

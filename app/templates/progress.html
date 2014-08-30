@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block error %}
+{% with message = get_flashed_messages()[0] %}
+  {% if message %}
+    {% if message.error == True %}
+      <div class="alert alert-danger"><span class="glyphicon glyphicon-remove"></span>{{ message.text|safe }}</div>
+    {% elif message.error == False %}
+      <div class="alert alert-success"><span class="glyphicon glyphicon-thumbs-up"></span>{{ message.text|safe }}</div>
+    {% endif %}
+  {% endif %}
+{% endwith %}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row clearfix">
+    <div class="col-md-12 column">
+      <div class="media">
+      <br>
+      <a href="{{book_info.infoLink}}" class="pull-left">
+       <img src="{{book_info.thumbnail_url}}" class="img-responsive" alt='cover-image' width='128px' height='174px'>
+      </a>
+        <div class="clearfix">
+          <div class="media-body" data-html="true">
+          <br>
+          <a href="{{book_info.infoLink}}"> <h3 class="media-heading">{{book_info.title}}</h3></a>
+            <div class="panel-body" data-html="true">
+            {{book_info.author}}<br>{{book_info.publisher}}<br>{{book_info.publishedDate}}<br>
+            {% if book_info.language %}language : {{book_info.language}}<br>{% endif %}
+            <B>publicDomain : {{book_info.publicDomain}}</B>
+            </div> {{book_info.description}} 
+          </div>		
+        </div>
+      </div>
+      <br>
+      <div class="alert alert-info">
+        <span class="glyphicon glyphicon-hand-up"></span>
+        {% if progress.ia_response == None  %}
+        There are <B><U>{{progress.queue_index}}</U></B> items in the queue, before this job.<br>
+        {% endif %}
+        <a href="{{ url_for('queue') }}">Click here to view the Queue.</a> 
+      </div>
+      <br>
+      <h3><B>{{progress.percent_complete}}% Complete</B><I>{% if progress.ia_response == 1 %}(stopped){% endif %}</I></h3>
+      <div class="progress progress-striped active">
+        <div class="progress-bar progress-bar-primary" role="progressbar" aria-valuenow="{{progress.percent_complete}}" aria-valuemin="0" aria-valuemax="100"  style="width: {{progress.percent_complete}}%">
+      </div>
+    </div>
+    
+    
+    <ul class="list-group">
+      <li class="list-group-item {% if progress.ia_response == 1 or progress.ia_response == 0 %}green{% elif progress.queue_index == 0 %}orange{% endif %}">Internet Archive check<span class="pull-right">
+      {% if progress.ia_response == 1%}
+      Copy available!<span class="glyphicon glyphicon-pause"></span></span><br><I>Similar copies available on Internet Archive:<br>
+      {% for identifier in progress.ia_identifier %}
+       <a href ='http://archive.org/details/{{identifier}}'>File {{loop.index}}</a><br>
+      {% endfor %}
+      <a href = '/bub/progress/{{book_id}}/reupload/'>Click here to still upload a new copy to archive.</a>
+      </I></li>
+      {% elif progress.ia_response == 0 %}
+      Done!<span class="glyphicon glyphicon-ok-sign"></span></span><br><I>copy not available on Internet Archive.</I></li>
+      {% elif progress.queue_index == 0 %}
+      working..<span class="glyphicon glyphicon-time"></span></span></li>
+      {% endif %}
+   
+      <li class="list-group-item {% if progress.ia_response == 0 or progress.ia_response == 3 %}{% if progress.download_progress != 1 %}orange{% elif progress.download_progress == 1 %}green{% endif %}{% endif %}">Book pdf download<span class="pull-right">
+      {% if progress.ia_response == 0 or progress.ia_response == 3 %}
+      {% if progress.download_progress != 1 %}
+      working..<span class="glyphicon glyphicon-time"></span>
+      {% elif progress.download_progress == 1 %}
+      Done!<span class="glyphicon glyphicon-ok-sign"></span>
+      {% endif %}
+      {% endif %}
+      </span></li>
+   
+      <li class="list-group-item {% if progress.download_progress == 1 and progress.upload_progress != 1 %}orange{% elif progress.upload_progress == 1 %}green{% endif %}">Upload to Internet Archive<span class="pull-right">
+      {% if progress.download_progress == 1 and progress.upload_progress != 1 %}
+      working..<span class="glyphicon glyphicon-time"></span></span></li>
+      {% elif progress.upload_progress == 1 %}
+      Done!<span class="glyphicon glyphicon-ok-sign"></span></span><br><B><I><a href="{{progress.ia_link}}">Uploaded file Link.</a></I></B></li>
+      {% else %}
+      </span>
+      {% endif %}
+   
+      <li class="list-group-item {% if progress.upload_progress == 1 and progress.OCR_progress == None %}orange{% elif progress.OCR_progress != None %}green{% endif %}">Archive OCR complete<span class="pull-right">
+      {% if progress.upload_progress == 1 and progress.OCR_progress == None %}
+      working..<span class="glyphicon glyphicon-time"></span></span></li>
+      {% elif progress.OCR_progress == 1 %}
+      Done!<span class="glyphicon glyphicon-ok-sign"></span></span></li>
+      {% elif progress.OCR_progress == 0 %}
+      Done!<span class="glyphicon glyphicon-ok-sign"></span></span><br><I>Book language curently not OCR'able.</I></li>
+      {% else %}
+      </span>
+      {% endif %}
+   
+      <li class="list-group-item {% if progress.OCR_progress != None and progress.email_progress != 1 %}orange{% elif progress.email_progress == 1 %}green{% endif %}">Notification emails<span class="pull-right">
+      {% if progress.OCR_progress == 1 and progress.email_progress != 1 %}
+      working..<span class="glyphicon glyphicon-time"></span></span></li>
+      {% elif progress.email_progress == 1 %}
+      Sent!<span class="glyphicon glyphicon-ok-sign"></span></span><br></li>
+      {% else %}
+      </span>
+      {% endif %}
+    </ul>    
+{% if progress.ia_response == 0 and progress.OCR_progress == 1 %}
+    <a href='http://tools.wmflabs.org/ia-upload/commons/fill?iaId={{progress.ia_identifier}}&commonsName=type+your+name'><button type="button" class="btn btn-primary">Upload to Commons</button></a>
+{% endif %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}

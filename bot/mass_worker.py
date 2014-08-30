@@ -23,6 +23,7 @@ import MySQLdb
 import json
 import dateutil.parser as parser
 from datetime import datetime
+import pytz
 import difflib
 import os.path
 from os import urandom
@@ -32,20 +33,33 @@ import time
 from urllib import quote_plus
 import subprocess
 import hashlib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from subprocess import Popen, PIPE
+from multiprocessing import Process
 
 import internetarchive as ia
+from jinja2 import Template
 
 sys.path.append('../utils')
 import redis_py
 import mysql_py
 import keys
 from retry import retry, ia_online, requests
+from linked import get_id_from_another_worker
 
-sys.path.append('../app')
-import bridge
+sys.path.append('../digi-lib')
+import gb
+
+gb.key = keys.google_books_key2
+redis_key4 = keys.redis_key4  
+mass_worker_key = redis_key4 + ":mass_worker"
+__worker_name = "Mass Worker #1"
 
 
-log = open('worker.log', 'a')
+log = open('mass_worker.log', 'a')
+bulk_order_log = open('bulk_order.log', 'a')
+email_log = open('email.log', 'a')
 
 
 def lang_code(code):
@@ -72,7 +86,7 @@ def lang_code(code):
         'it':'Italian',
         'ja':'Japanese',
         'ko':'Korean',
-	'la':'Latin',
+	    'la':'Latin',
         'lv':'Latvian',
         'lt':'Lithuanian',
         'no':'Norwegian',
@@ -98,36 +112,30 @@ def lang_code(code):
 
 
 class IaWorker(object):
-    """Internet-archive worker: ia-check, upload, call download method from library module"""
+    """Internet-archive worker: perform metadata extraction, ia-check, upload, call download method from library module"""
     
     def __init__(self, value):
-        """Assign variable, and get metadata from cache"""
-        redis_key3 = keys.redis_key3
-        self.redis_key3 = redis_key3
+        """Assign variable"""
+        redis_key3 = keys.redis_key3 
+        self.library = 'gb'
+        self.library_name = 'Google-Books'
+        self.Id = value.encode('utf-8')
+        self.ia_identifier = "bub_" + self.library + "_" + value
+        self.book_key = "%s:%s:%s" %(redis_key3, self.library, value) 
         self.redis = redis_py.Redis()
-        if  isinstance(value, (int, long, float, complex)):
-            db = mysql_py.Db()
-            values = db.execute('select library, book_id from request where sno = %s;',value)
-            db.close()
-            self.library = values[0]
-            self.Id = values[1].encode('utf-8')
-            self.book_key = "%s:%s:%s" %(redis_key3, self.library, self.Id) 
-            self.redis.set(redis_key3+":ongoing_job_identifier", self.Id)
-            self.ia_identifier = None
-        else:
-            self.library = value['library']
-            self.Id = value['Id']
-            self.ia_identifier = "bub_" + self.library + "_" + value['ia_identifier_suffix']
-            self.book_key = "%s:%s:%s" %(redis_key3, self.library, value['ia_identifier_suffix']) 
-            self.redis.set(redis_key3+":ongoing_job_identifier", value['ia_identifier_suffix'])
-        if '/' not in self.Id:
-            self.redis_output_file_key = "%s:%s:%s:output_file" %(redis_key3, self.library, self.Id)
-        else:
-            self.redis_output_file_key = "%s:%s:%s:output_file" %(redis_key3, self.library, hashlib.md5(self.Id).hexdigest())
-        self.library_name = bridge.lib_module(self.library)[1]           
+        self.redis_output_file_key = "%s:%s:%s:output_file" %(redis_key3, self.library, self.Id) 
+               
+    def set_metadata(self): 
+        """Get metadata, and save it to memory.
+           Return 0 on success, or return the error_status of library module."""        
         metadata_key = self.book_key + ":metadata"
-        metadata = self.redis.get(metadata_key)
-        info = json.loads(metadata)      
+        metadata = gb.metadata(self.Id)
+        if isinstance(metadata, (int, long, float, complex)):
+            error_status = metadata
+            return error_status
+        info = metadata
+        metadata = json.dumps(metadata)
+        self.redis.set(metadata_key, metadata)                  
         self.title = info['title'].encode("utf-8") + " " + info['subtitle'].encode("utf-8")
         self.author = info['author'].encode("utf-8")
         self.publisher = info['publisher'].encode("utf-8")
@@ -151,8 +159,8 @@ class IaWorker(object):
             self.language = ""
         self.pdf_path = "./downloads/bub_%s_%s.pdf" %(self.library, self.Id)
         self.scanner = info['scanner'] 
-        self.sponser = info['sponser']        
-        
+        self.sponser = info['sponser']  
+        return 0      
         
     @retry(backoff = 2, logger = log)
     @ia_online(logger = log)
@@ -160,7 +168,7 @@ class IaWorker(object):
         """Check if book present in IA.
         Return False if not present else Return Identifier(s)"""
         
-        url="""http://archive.org/advancedsearch.php?q=title%%3A(%s)+AND+mediatype%%3A(texts)&fl[]=creator&fl[]=source&fl[]=date&fl[]=identifier&fl[]=language&fl[]=publisher&fl[]=title&sort[]=&sort[]=&sort[]=&rows=20&page=1&output=json""" % quote_plus(re.sub(r"""[!#\n|^\\\"~()\[\]:\-]""", '', self.title)[:330])  
+        url="""http://archive.org/advancedsearch.php?q=title%%3A(%s)+AND+mediatype%%3A(texts)&fl[]=creator&fl[]=source&fl[]=date&fl[]=identifier&fl[]=language&fl[]=publisher&fl[]=title&sort[]=&sort[]=&sort[]=&rows=20&page=1&output=json""" % quote_plus(re.sub(r"""[!#\n|^\\\"~()\[\]:\-]""", '', self.title)[:330]) 
         r = requests.get(url)
         ia_info = r.json()
         numFound = int(ia_info['response']['numFound'])
@@ -176,10 +184,8 @@ class IaWorker(object):
         for i in range(numFound):
             match_score = 0
             creator_present = 0 
-	    #print "index: %s\n" %i
             if 'source' in ia_info['response']['docs'][i].keys() and self.Id not in (None, ""):
                 source = ia_info['response']['docs'][i]['source'].encode("utf-8")
-		#print "source: %s" %source
                 if self.Id in source:
                     match_score += 20 
             if 'title' in ia_info['response']['docs'][i].keys() and self.title not in (None, ""):
@@ -245,7 +251,6 @@ class IaWorker(object):
         item = ia.get_item(urandom(16).encode("hex"))
         return item
         
-        
     @retry(logger = log)
     @ia_online(logger = log)
     def upload_to_IA(self, library, Id): 
@@ -255,6 +260,7 @@ class IaWorker(object):
             self.ia_identifier = item.identifier
         else:
             item = ia.get_item(self.ia_identifier)
+        language_from_input = self.redis.get(self.book_key + ":language")
         metadata = dict(
             mediatype = "text",
             creator = self.author,
@@ -262,7 +268,7 @@ class IaWorker(object):
             publisher = self.publisher,
             description = re.sub(r"""[!#\n|^\\\"~()\[\]:\-]""",'',self.description),
             source = self.infoLink,
-            language = self.language,
+            language = self.language if language_from_input in (None, "") else language_from_input,
             year = self.year,
             date = self.publishedDate,
             subject = "bub_upload",
@@ -285,7 +291,7 @@ class IaWorker(object):
             subprocess.check_call(command, shell=True)     
         except:
             log.write("%s  Command rm %s failed" %(datetime.now(), filename))
-            log.flush()      
+            log.flush()
         return status
 
     def save_ia_identifier(self, value):
@@ -293,49 +299,175 @@ class IaWorker(object):
         redis_key3 = keys.redis_key3
         key_ia_identifier = self.book_key + ":ia_identifier"      
         value = json.dumps(value)
-        self.redis.set(key_ia_identifier, value) 
+        self.redis.set(key_ia_identifier, value)     
 
-    def submit_OCR_wait_job(self, value):
-        """Add book-request to OCR-waitlist queue"""     
-        self.save_ia_identifier(value)
-        redis_key2 = keys.redis_key2
-        q = redis_py.Queue(redis_key2)
-        q.add( self.book_key )   
-    
-    
+    def stored_copy_check(self):
+        """Check if book already uploaded by the tool."""
+        if self.redis.get(self.book_key + ":upload_progress") == '1':
+            return True  
+        else:
+            return None
+
+
+def send_email(email, no_of_uploads):
+        """Send email"""
+        msg = MIMEMultipart('alternative')
+        msg['From'] = "tools.bub@tools.wmflabs.org"
+        msg['To'] = email 
+        html_template_data = open('./templates/email.html', 'r') 
+        html_template = Template(html_template_data.read())
+        msg['Subject'] = "Your uploads are ready!" 
+        text = """Hi!\n\nYour %s uploads are ready in Internet-archive!\n\n--\n*** This is an automatically generated email, please do not reply ***\nhttp://tools.wmflabs.org/bub/""" %no_of_uploads
+        random_number = urandom(16).encode("hex")
+        html = html_template.render(no_of_uploads = no_of_uploads, random = random_number)
+        part1 = MIMEText(text, 'plain')
+        part2 = MIMEText(html, 'html')
+        msg.attach(part1)
+        msg.attach(part2)
+        p = Popen(["/usr/sbin/exim", "-odf", "-i", email], stdin=PIPE)
+        p.communicate(msg.as_string())
+        email_log.write('%s  Mass-Upload(%s)  %s\n' %(email, no_of_uploads, datetime.now()))
+        email_log.flush()
+
+
+def seconds_until_google_quota_refresh():
+    """Return seconds until new Google-books quota starts.(Midnight-US/Pacific)"""
+    t=datetime.now(pytz.timezone('US/Pacific')).timetuple()
+    if t.tm_hour == 0:
+        return 5
+    return ((24.0-(t.tm_hour+t.tm_min/60.0))*3600)+3
+         
+
 class QueueHandler(object):
     def __init__(self, redis_key):
         self.queue = redis_py.Queue(redis_key)
+        self.Lock = redis_py.Lock( mass_worker_key + ":pop" )
     
-    def pop_and_remove(self):
+    def pop_and_remove(self, wait_type = 'blocking'):
         """Pop and remove an item from redis queue 
         when available(blocking)"""
         item = False
         while item is False:
             item = self.queue.pop()
             if item != False:
+                self.Lock.acquire()
                 self.queue.remove(item[0])
+                self.Lock.release()
             if item is False:
+                if wait_type == 'nonblocking':
+                    return False
                 time.sleep(1)
-        return json.loads(item[0])
+        return item[0]
         
+    def add(self, value):
+        return self.queue.add(value)
 
-def manager(q):
+
+def get_shortest_queue(workers = 2):
+    #2 mass-workers running
+    q_size_list = []
+    q_list = []
+    for i in range(1, workers+1):
+        worker_queue_key = "%s:mass_worker_%s" %(redis_key4, i)
+        if i == 1:
+            worker_queue_key = "%s:mass_worker" %(redis_key4)
+        q = redis_py.Queue(worker_queue_key)
+        q_list.append(q)
+        q_size_list.append(q.size())
+    return q_list[ q_size_list.index(min( q_size_list )) ]
+
+
+
+def wait_and_add_to_queue(q_bulk_order):
+    """Parse Id's from bulk-order queue(accepts requests from web) entry and add to mass-worker queue."""
+    log.write("%s  Started wait_and_add_to_queue\n" %datetime.now())
+    while True:
+        info = json.loads(q_bulk_order.pop_and_remove())
+        ids = info[0]
+        email = info[1]
+        language = info[2]
+        ids = re.findall(r'[^,(\r\n)\s]+', ids)
+        no=len(ids)  
+        q_mass_worker = get_shortest_queue()
+        library_id = 'gb'
+        redis_key3 = keys.redis_key3
+        redis = redis_py.Redis()
+        for book_id in ids:
+            book_id = gb.get_id_from_string(book_id)
+            book_key = "%s:%s:%s" %(redis_key3, library_id, book_id)
+            book_language_key  = book_key + ":language"
+            redis.set(book_language_key, language)
+            q_mass_worker.add(book_id)    
+        q_mass_worker.add( json.dumps((email, no)) )
+        bulk_order_log.write("%s  Received %s entries from %s\n" %(datetime.now(), no, email))        
+        bulk_order_log.flush()
+
+def ping_db(db):
+    """Checks and connects, if database not connected"""
+    try:
+        command = "select 1;"    
+        db.execute(command)
+    except:
+        db = mysql_py.Db() 
+    return db
+
+
+def manager(q_mass_worker):
+      db = mysql_py.Db()
       while True:
-        value = q.pop_and_remove()    
-        ia_w = IaWorker(value)
-        if isinstance(value, (int, long, float, complex)):
-            ia_identifier_found = ia_w.check_in_IA(ia_w.library, ia_w.Id)
-            if ia_identifier_found is not False:
-                ia_w.submit_OCR_wait_job(ia_identifier_found)
+        book_id = False
+        while book_id == False:
+            book_id = q_mass_worker.pop_and_remove(wait_type = 'nonblocking')  
+            if book_id == False:
+                book_id = get_id_from_another_worker(mass_worker_key)
+                if book_id == False:
+                    time.sleep(1)
+        try:
+            book_id = json.loads(book_id)
+        except ValueError:
+            pass
+        if isinstance(book_id, list ):
+            email = book_id[0]
+            no_of_uploads = book_id[1]
+            if email not in (None, ""):
+                send_email(email, no_of_uploads)
+            continue
+        ia_w = IaWorker(book_id)        
+        stored_identifier = ia_w.stored_copy_check()
+        if stored_identifier != None:
+            continue
+        db = ping_db(db)     
+        md5_book = hashlib.md5(ia_w.Id + ia_w.library).hexdigest()
+        redundancy_book = db.execute("select count(*) from request where md5_book='%s' and confirmed=1 and job_submitted=1;",md5_book)
+        if redundancy_book[0] != 0:
+            continue       
+        metadata_status = ia_w.set_metadata()
+        if isinstance(metadata_status, (int, long, float, complex)):
+            if metadata_status == 7:
+                log.write('%s %s API limit exceeded Sleeping with book_id:%s\n' %(datetime.now(), __worker_name, book_id))
+                log.flush()
+                time.sleep(seconds_until_google_quota_refresh())
+                q_mass_worker.add(book_id)
+                continue    
+            elif metadata_status == 2:
+                log.write("%s  %s  Not Public Domain\n" %(datetime.now(), book_id))
+                log.flush()
                 continue
-        else:
-            ia_response_key = ia_w.book_key + ":ia_response"
-            ia_w.redis.set(ia_response_key, 3)       
+            elif metadata_status == 0:
+                pass
+            else:
+                log.write("%s  Metadata Error, library:%s, ID:%s, status:%s\n" %(datetime.now(), 'gb', book_id, metadata_status) )
+                log.flush()
+                continue
+                        
+        ia_identifier_found = ia_w.check_in_IA(ia_w.library, ia_w.Id)
+        if ia_identifier_found is not False:
+            ia_w.save_ia_identifier(ia_identifier_found)
+            continue  
         if not os.path.isfile(ia_w.pdf_path):
-            download_status = bridge.download_book(ia_w.library, ia_w.Id)
+            download_status = gb.download_book(ia_w.Id)
             if download_status != 0:
-                log.write("%s  Download Error, library:%s, ID:%s\n" %(datetime.now(), ia_w.library, ia_w.Id) )
+                log.write("%s  Download Error, library:%s, ID:%s\n" %(datetime.now(), 'gb', book_id) )
                 log.flush()
                 continue
         download_progress_key = ia_w.book_key + ":download_progress"
@@ -344,15 +476,18 @@ def manager(q):
         if str(upload_status) == "[<Response [200]>]":
             upload_progress_key = ia_w.book_key + ":upload_progress"
             ia_w.redis.set(upload_progress_key, 1)
-            ia_w.submit_OCR_wait_job(ia_w.ia_identifier)
-        ia_w.redis.delete(ia_w.redis_key3+":ongoing_job_identifier")            
+            ia_w.save_ia_identifier(ia_w.ia_identifier)
+            
         
 def main():
-    log.write("%s  Started worker.py\n" %datetime.now())
+    log.write("%s  Started %s\n" %(datetime.now(), __worker_name) )
     log.flush()
-    redis_key1 = keys.redis_key1 
-    q = QueueHandler(redis_key1)  
-    manager(q)            
+    redis_key4 = keys.redis_key4  
+    q_mass_worker = QueueHandler(mass_worker_key)
+    q_bulk_order = QueueHandler(redis_key4)  
+    p = Process(target = wait_and_add_to_queue, args=(q_bulk_order,))      #Process spawn
+    p.start()
+    manager(q_mass_worker)            
         
         
 if __name__ == '__main__':

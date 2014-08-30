@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block error %}
+{% set message = get_flashed_messages()[0] %}
+  {% if message %}
+    {% if message.error == True %}
+      <div class="alert alert-danger"><span class="glyphicon glyphicon-remove"></span>{{ message.text|safe }}</div>
+    {% elif message.error == False %}
+      <div class="alert alert-success"><span class="glyphicon glyphicon-thumbs-up"></span>{{ message.text|safe }}</div>
+    {% endif %}
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<br>
+<a href="/bub/admin/queue/">Mass-Upload Queue</a>
+<br>
+<div class="media">
+    <h4 class="media-heading">Admin Login</h4>
+</div>
+<br>
+<form method="POST" action="" role="form" class="form-horizontal">
+    {{form.hidden_tag()}}
+    <fieldset>
+    <!-- Text input: PASSWORD-->
+    <div class="form-group {% if _errorNo == 500 %}has-error{% endif %}" >
+    <label class="col-md-2 control-label" for="password"></label>  
+      <div class="col-md-8">
+        <input id="password" name="password" placeholder="Password" class="form-control input-md" required="" type="password" maxlength="30"> 
+      </div>
+    </div>
+    
+    <div class="form-group">
+     <label class="col-md-2 control-label"></label>
+      <div class="col-md-8">
+        {{ form.recaptcha }}
+      </div>
+    </div>
+    
+    <!-- Button -->
+    <div class="form-group">
+    <label class="col-md-2 control-label" for="upload"></label>
+      <div class="col-md-8">
+        <button id="enter" name="enter" type="submit" class="btn btn-block btn-primary"><span class="glyphicon glyphicon-lock"></span> Enter</button>
+      </div>
+    </div>
+    
+  </fieldset>
+</form>
+<br>
+<p style="font-size:small;-webkit-text-size-adjust:none;color:#666;">Ping at <U>tools.bub AT tools.wmflabs DOT org</U> to get an access.</p>
+    
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+  <div class="row clearfix">
+    <div class="col-md-12 column">
+      <div class="media">
+        <div class="media-body" data-html="true">
+        <br>
+        <h3 class="media-heading"><U>About BUB</U></h3>
+          <div class="panel-body" data-html="true">
+          <ul class="list-group">
+            <li>Author: Rohit Dua (8ohit.dua)</li>
+            <li>Maintained at : <a href='https://github.com/rohit-dua/BUB'>https://github.com/rohit-dua/BUB</a></li>
+            <li>Email: tools.bub AT tools DOT wmflabs DOT org</li>
+            <li>Originally created  to contribute to <a href='http://commons.wikimedia.org'>Wikimedia Commons</a> and <a href ='http://archive.org/'>Internet Archive</a></li>
+            <li>LICENSE : <a href="http://tools.wmflabs.org/bub/license">GNU GENERAL PUBLIC LICENSE Version 3</a></li>
+          </ul>
+          <p>BUB is a web-tool built in Python that downloads books from public libraries like Google-Books, and then uploads them to the <a href='http://archive.org'>Internet Archive</a> and Wikimedia Commons with the help of <a href='http://tools.wmflabs.org/ia-upload/commons/init'>IA-Upload tool</a></p>
+          <h4>Currently supported libraries:</h4>
+          <ul>
+            {% for library in libraries %}
+              <li>{{ library.name }}</li>
+            {% endfor %}
+          </ul>
+          <a href='https://archive.org/search.php?query=subject%3A%22bub_upload%22&sort=-publicdate'>Click here to view files uploaded to archive by BuB.</a>
+          <br><br>
+          <h4 class="media-heading">Usage:</h4>
+          <ol>
+            <li>Select a library</li>
+            <li>Enter ID or URL for the book</li>
+              <I>eg: http://google.com/books?id=UUYcn_1x2goC&printsec=frontcover OR UUYcn_1x2goC</I><br>
+              <I>eg: http://www.brasiliana.usp.br/bbd/handle/1918/017354-09/ OR 1918/017354-09</I>
+            <li>Enter your email address</li>
+              <I>It will be used to inform you as soon as the upload is ready, and yes we hate spam too.</I>
+            <li>Confirm and Submit</li>
+              <p>The bot will then proccess the requests, upload the book to IA using a default email address (tools.bub AT tools.wmflabs DOT org), and once the upload is ready, an email will be sent to your email address.</p>
+              <p>For wildcard-images or direct pdf transfer from link, select Manual-Wildcard in the library drop-down.</p>
+              You may add <U>tools.bub AT tools.wmflabs DOT org</U> to your address book in your email settings.
+          </ol>
+          </div>
+        </div>		
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

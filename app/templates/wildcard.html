@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block error %}
+{% with message = get_flashed_messages()[0] %}
+  {% if message %}
+    {% if message.error == True %}
+      <div class="alert alert-danger"><span class="glyphicon glyphicon-remove"></span>{{ message.text|safe }}</div>
+    {% elif message.error == False %}
+      <div class="alert alert-success"><span class="glyphicon glyphicon-thumbs-up"></span>{{ message.text|safe }}</div>
+    {% endif %}
+  {% endif %}
+{% endwith %}
+{% endblock %}
+
+{% block content %}
+<form method="POST" action="" role="form" class="form-horizontal">
+  {{form.hidden_tag()}}
+  <fieldset>
+    <legend>Upload File from Libraries directly from wilcard image-links or Book-pdf link</legend>
+    
+    <!-- Drop-Down: link type -->
+    <div class="form-group">
+      <label class="col-md-2 control-label" for="library"></label>
+      <div class="col-md-4">
+        <select id="link_type" name="link_type" class="form-control" onchange="call1()" >
+          <option value="wildcard" selected>Wildcard-link (images)</option>
+          <option value="pdf">Pdf-link</option>
+        </select>
+      </div>
+    </div>    
+    
+
+    <!-- Text input: wildcard URL-->
+    <div class="form-group {% if _errorNo == 1 or _errorNo == 2 %}has-error{% endif %}" >
+    <label class="col-md-2 control-label" for="Id"></label>  
+      <div class="col-md-8">
+        <input id="book_url" name="book_url" placeholder="Wildcard URL" class="form-control input-md" required="" type="text" maxlength="150" {% if form.book_url.data %}value = "{{form.book_url.data}}"{% endif %}> 
+         <p class="help-block">eg : tools.wmflabs.org/bub/file/(*).jpeg</p>
+      </div>
+      <a data-toggle="tooltip" data-html="true" data-placement="auto left" animation=true title="URL with wildcard for iterating over images"><B><span class="glyphicon glyphicon-info-sign"></span></B></a> 
+    </div>
+    
+    
+    <!-- Text input: From/To-->
+    <div class="form-group {% if _errorNo == 1 or _errorNo == 2 %}has-error{% endif %}" >
+    <label class="col-md-2 control-label" for="Id"></label>  
+      <div class="col-md-3">
+        <input id="from_no" name="from_no" placeholder="From" class="form-control input-md" required="" type="text" maxlength="20" {% if form.from_no.data %}value = "{{form.from_no.data}}"{% endif %}> 
+      </div>
+      
+ <div class="col-md-3">
+        <input id="to_no" name="to_no" placeholder="To" class="form-control input-md" required="" type="text" maxlength="20" {% if form.to_no.data %}value = "{{form.to_no.data}}"{% endif %}> 
+      </div>    
+      <p class="help-block">eg : From: 1 To: 100</p>
+    </div>    
+    
+    <!-- Text input: pdf URL-->
+    <div class="form-group {% if _errorNo == 1 or _errorNo == 2 %}has-error{% endif %}" >
+    <label class="col-md-2 control-label" for="Id"></label>  
+      <div class="col-md-8">
+        <input id="book_pdf_url" name="book_pdf_url" placeholder="PDF URL" class="form-control input-md" required="" type="text" maxlength="150" {% if form.book_pdf_url.data %}value = "{{form.book_pdf_url.data}}"{% endif %} disabled> 
+      </div>
+      <a data-toggle="tooltip" data-html="true" data-placement="auto left" animation=true title="Link to direct pdf file"><B><span class="glyphicon glyphicon-info-sign"></span></B></a> 
+    </div>
+
+    <!-- Text input: EMAIL-->
+    <div class="form-group {% if _errorNo == 5 %}has-error{% endif %}">
+    <label class="col-md-2 control-label" for="email"></label>  
+      <div class="col-md-8">
+        <div class="input-group">
+          <span class="input-group-addon">
+		       <input type="checkbox" name="checkbox" onclick="toggle_state('email', this.checked)" checked>
+	        </span>
+          <input id="email" name="email" placeholder="Email Address" class="form-control input-md" required="" type="email" maxlength="100" {% if form.email.data %}value = "{{form.email.data}}"{% endif %}>
+        </div>
+      </div>
+      <a data-toggle="tooltip" data-html="true" data-placement="auto left" animation=true title="<B>This email-id will be used to notify you as soon as the upload is ready.</B><br><I>(we respect privacy!)</I><br>Uncheck to continue without notification."><B><span class="glyphicon glyphicon-info-sign"></span></B></a>
+    </div>
+    <hr>
+    <h5>Metadata</h5>
+    
+
+<!-- Title-->
+    <div class="form-group {% if _errorNo == 1 or _errorNo == 2 %}has-error{% endif %}" >
+    <label class="col-md-2 control-label" for="title"></label>  
+      <div class="col-md-8">
+        <input id="title" name="title" placeholder="Title" class="form-control input-md" required="" type="text" maxlength="150" {% if form.title.data %}value = "{{form.title.data}}"{% endif %} > 
+      </div>
+    </div>
+    
+<!-- Author-->
+    <div class="form-group {% if _errorNo == 1 or _errorNo == 2 %}has-error{% endif %}" >
+    <label class="col-md-2 control-label" for="author"></label>  
+      <div class="col-md-8">
+        <input id="author" name="author" placeholder="Author" class="form-control input-md" type="text" maxlength="150" {% if form.author.data %}value = "{{form.author.data}}"{% endif %}> 
+      </div>
+    </div>
+    
+<!-- Publisher-->
+    <div class="form-group {% if _errorNo == 1 or _errorNo == 2 %}has-error{% endif %}" >
+    <label class="col-md-2 control-label" for="publisher"></label>  
+      <div class="col-md-8">
+        <input id="publisher" name="publisher" placeholder="Publisher" class="form-control input-md" type="text" maxlength="150" {% if form.publisher.data %}value = "{{form.publisher.data}}"{% endif %}> 
+      </div>
+    </div>
+    
+<!-- PublishedDate-->
+    <div class="form-group {% if _errorNo == 1 or _errorNo == 2 %}has-error{% endif %}" >
+    <label class="col-md-2 control-label" for="date"></label>  
+      <div class="col-md-8">
+        <input id="date" name="date" placeholder="Published Date" class="form-control input-md" type="text" maxlength="150" {% if form.date.data %}value = "{{form.date.data}}"{% endif %}> 
+      </div>
+    </div>
+    
+<!-- Description-->
+    <div class="form-group {% if _errorNo == 1 or _errorNo == 2 %}has-error{% endif %}" >
+    <label class="col-md-2 control-label" for="desc"></label>  
+      <div class="col-md-8">
+        <textarea placeholder="Description (optional)" rows="5" cols="50" id="desc" name="desc" class="form-control input-md"  {% if form.desc.data %}value = "{{form.desc.data}}"{% endif %}></textarea>
+      </div>
+    </div>
+    
+<!-- Language-->
+    <div class="form-group {% if _errorNo == 1 or _errorNo == 2 %}has-error{% endif %}" >
+    <label class="col-md-2 control-label" for="language"></label>  
+      <div class="col-md-8">
+        <input id="language" name="language" placeholder="Language (eg: English or en)" class="form-control input-md" required="" type="text" maxlength="150" {% if form.language.data %}value = "{{form.language.data}}"{% endif %}> 
+      </div>
+    </div>
+    
+
+    <!-- Button -->
+    <div class="form-group">
+    <label class="col-md-2 control-label" for="upload"></label>
+      <div class="col-md-8">
+        <button id="upload" name="upload" type="submit" class="btn btn-block btn-primary"><span class="glyphicon glyphicon-upload"></span> Upload</button>
+      </div>
+    </div>
+          
+  </fieldset>
+</form>
+<script>
+  function toggle_state(id,status)
+  {
+    status=!status;
+    document.getElementById(id).disabled = status;
+  }
+  $(function () { $("[data-toggle='tooltip']").tooltip(); });
+</script>
+<script>  
+  document.getElementById("link_type").onchange = function () {
+    var val = this.options[this.selectedIndex].value;
+    if (val.indexOf("wildcard") != -1) {
+    document.getElementById('book_pdf_url').disabled = 1;
+    document.getElementById('book_url').disabled = 0;
+    document.getElementById('from_no').disabled = 0;
+    document.getElementById('to_no').disabled = 0;
+    }
+    else {
+    document.getElementById('book_pdf_url').disabled = 0;
+    document.getElementById('book_url').disabled = 1;
+    document.getElementById('from_no').disabled = 1;
+    document.getElementById('to_no').disabled = 1;
+    }
+  };
+</script>
+
+{% endblock %}

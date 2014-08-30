@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+  <div class="row clearfix">
+    <div class="col-md-12 column">
+    {% if queue %}
+      {% if queue|length >= number_of_entries %}
+      <h4>Showing first {{number_of_entries}} entries.</h4>
+        {% if admin_queue %}
+        <a href = "/bub/admin/queue/{{number_of_entries*10}}">Click here for {{number_of_entries*10}} entries.</a>
+        {% else %}
+        <a href = "{{url_for('queue', number_of_entries= number_of_entries*10)}}">Click here for {{number_of_entries*10}} entries.</a>
+        {% endif %}
+      {% else %}
+      <h4>There are {{queue|length}} items in the queue.</h4>
+      {% endif %}
+      <table class="table" style="width: 30%;">
+        <tbody>
+            {% if currently_running %}
+            <tr class="success">
+                <td>Running</td>
+		<td>{{currently_running}}</td>
+            </tr>
+            {% endif %}
+            {% if total_OCR_waiting %}
+            <tr class="warning">
+                <td>Waiting for OCR completion</td>
+                <td>{{total_OCR_waiting}}</td>
+            </tr>
+            {% endif %}
+            <tr class="active">
+                <td>Waiting to run</td>
+                <td>{{total_waiting_to_run}}</td>
+            </tr>
+        </tbody>      
+      </table>
+      <table class="table">
+        <thead>
+            <tr class="blue">
+                <th>Sno.</th>
+                <th>Library</th>
+                <th>Book Id</th>
+            </tr>
+        </thead>
+        
+        <tbody>
+        {% if admin_queue %}
+          {% for item in queue %}
+            <tr class="active">
+                <td>{{loop.index}}</td>
+                <td>gb</td>
+                <td>{{item}}</td>
+            </tr>
+          {% endfor %}            
+        {% else %}
+          {% for item in queue %}
+            <tr class="{% if item.book_id == present_id %}success{% elif item.OCR_waiting == 1 %}warning{% else %}active{% endif %}">
+                <td>{{loop.index}}</td>
+                <td>{{item.library}}</td>
+                <td><a href={{ url_for('progress', book_id =item.library+':'+item.book_id)}}>{{item.book_id}}</a></td>
+            </tr>
+          {% endfor %}
+        {% endif %}
+        </tbody>
+    </table>
+    {% else %}
+      <h4>There are no items in the queue.</h4>
+    {% endif %}
+    
+    </div>
+  </div>
+</div>
+
+{% endblock %}
