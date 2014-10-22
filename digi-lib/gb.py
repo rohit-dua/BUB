@@ -55,7 +55,7 @@ def get_id_from_string(s):
     if "/" not in s:
         return s
     url = s
-    match = re.search("[?&]?id=([^&]+)", url)
+    match = re.search("[?&]?id=([^#&]+)", url)
     if not match:
         return None
     return match.group(1)

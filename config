@@ -5,6 +5,7 @@ usp                       usp                                DSpace-based-librar
 ht                        ht                                 HathiTrust
 mdc                       mdc                                Digital-Memory-of-Catalonia(mdc)
 man                       man                                Manual-Wildcard
+gal                       gal                                Gallica
 
 #end          
 # For new library, add the following details above(seperate by spaces):

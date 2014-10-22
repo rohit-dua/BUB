@@ -138,9 +138,14 @@ class IaWorker(object):
         self.publicDomain = info['publicDomain']
         language_code = info['language'].encode("utf-8")
         if self.publishedDate not in (None,"") :
-            self.year = parser.parse(self.publishedDate).year
-            self.month = parser.parse(self.publishedDate).month
-            self.day = parser.parse(self.publishedDate).day
+            try:
+                self.year = parser.parse(self.publishedDate).year
+                self.month = parser.parse(self.publishedDate).month
+                self.day = parser.parse(self.publishedDate).day
+            except:
+                self.year = ""
+                self.month = ""
+                self.day = "" 
         else:
             self.year = ""
             self.month = ""
@@ -229,7 +234,7 @@ class IaWorker(object):
         self.redis.set(ia_response_key, 0) 
         return False    
     
-    @retry(tries = 2, delay = 5, logger = log)
+    @retry(tries = 4, delay = 5, logger = log, backoff = 2)
     @ia_online(logger = log)
     def get_valid_identifier(self, primary = True):
         """Iterate over identifiers suffixed by _<no>, until found."""
@@ -246,7 +251,7 @@ class IaWorker(object):
         return item
         
         
-    @retry(logger = log)
+    @retry(logger = log, backoff = 2)
     @ia_online(logger = log)
     def upload_to_IA(self, library, Id): 
         """Upload book to IA with appropriate metadata."""
@@ -258,9 +263,9 @@ class IaWorker(object):
         metadata = dict(
             mediatype = "text",
             creator = self.author,
-            title = re.sub(r"""[!#\n|^\\\"~()\[\]:\-]""",'',self.title)[:330],
+            title = re.sub(r"""[!#\n\r|^\\\"~()\[\]:\-]""",'',self.title)[:330],
             publisher = self.publisher,
-            description = re.sub(r"""[!#\n|^\\\"~()\[\]:\-]""",'',self.description),
+            description = re.sub(r"""[!#\n\r|^\\\"~()\[\]:\-]""",'',self.description),
             source = self.infoLink,
             language = self.language,
             year = self.year,

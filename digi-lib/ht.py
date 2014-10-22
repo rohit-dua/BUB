@@ -33,6 +33,8 @@ import keys, redis_py
 from retry import retry, requests
 
 
+log = open('/data/project/bub/public_html/BUB/bot/ht.log', 'a')
+
     
 def get_record_key_from_id(Id):
     """Extract and return record key associated with the book-id"""
@@ -163,12 +165,12 @@ def metadata(Id):
         infoLink = records["recordURL"] if "recordURL" in records.keys() else "",
         publicDomain = True if items[0]["rightsCode"] in ("pd", "pdus") else "",
         language = extract_language(soup),
-        scanner = items[0]["orig"] if 'orig' in items[0].keys() else "hathitrust",
+        scanner = "Hathitrust",
         sponser = "HathiTrust"
     )
 
 
-@retry
+@retry(logger = log)
 def download_image_to_file(image_url, output_file):
     "Download image from url"
     client_key = keys.hathitrust_api_access_key
@@ -190,6 +192,10 @@ def download_image_to_file(image_url, output_file):
             for chunk in r.iter_content(1024):
                 f.write(chunk) 
     else:
+	log.write(r.text)
+	log.flush()
+        log.write(image_url)
+        log.flush()
 	return 1
 
 

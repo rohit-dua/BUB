@@ -363,7 +363,7 @@ class QueueHandler(object):
         return self.queue.add(value)
 
 
-def get_shortest_queue(workers = 2):
+def get_shortest_queue(workers = 3):
     #2 mass-workers running
     q_size_list = []
     q_list = []

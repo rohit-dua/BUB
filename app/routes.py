@@ -65,6 +65,10 @@ libraries = [
             value = 'mdc',
             name = 'Digital-Memory-of-Catalonia(mdc)' 
         ),
+	dict(
+            value = 'gal',
+	    name = 'Gallica'
+	),
         dict(
             value = '/bub/manual/',
             name = 'Manual-Wildcard'
