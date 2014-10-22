@@ -15,6 +15,7 @@ BUB is a web-tool built in Python that downloads books from public libraries lik
 * DSpace-based-library
 * HathiTrust
 * Digital-Memory-of-Catalonia(mdc)
+* Gallica
 * Manual-Wildcard
 
 ## Components
