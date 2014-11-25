@@ -128,7 +128,10 @@ class IaWorker(object):
         metadata_key = self.book_key + ":metadata"
         metadata = self.redis.get(metadata_key)
         info = json.loads(metadata)      
-        self.title = info['title'].encode("utf-8") + " " + info['subtitle'].encode("utf-8")
+        try:
+            self.title = info['title'].encode("utf-8") + " " + info['subtitle'].encode("utf-8")
+        except:
+            self.title = str(info['title']) + " " + str(info['subtitle']) 
         self.author = info['author'].encode("utf-8")
         self.publisher = info['publisher'].encode("utf-8")
         self.description = info['description'].replace("\n", "").encode("utf-8")
@@ -139,6 +142,7 @@ class IaWorker(object):
         language_code = info['language'].encode("utf-8")
         if self.publishedDate not in (None,"") :
             try:
+                self.publishedDate = re.sub('[x?]','0',self.publishedDate)
                 self.year = parser.parse(self.publishedDate).year
                 self.month = parser.parse(self.publishedDate).month
                 self.day = parser.parse(self.publishedDate).day

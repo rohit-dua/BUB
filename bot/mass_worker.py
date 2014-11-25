@@ -136,7 +136,10 @@ class IaWorker(object):
         info = metadata
         metadata = json.dumps(metadata)
         self.redis.set(metadata_key, metadata)                  
-        self.title = info['title'].encode("utf-8") + " " + info['subtitle'].encode("utf-8")
+        try:
+            self.title = info['title'].encode("utf-8") + " " + info['subtitle'].encode("utf-8")
+        except:
+            self.title = str(info['title']) + " " + str(info['subtitle']) 
         self.author = info['author'].encode("utf-8")
         self.publisher = info['publisher'].encode("utf-8")
         self.description = info['description'].replace("\n", "").encode("utf-8")
@@ -146,6 +149,7 @@ class IaWorker(object):
         self.publicDomain = info['publicDomain']
         language_code = info['language'].encode("utf-8")
         if self.publishedDate not in (None,"") :
+            self.publishedDate = re.sub('[x?]','0',self.publishedDate)
             self.year = parser.parse(self.publishedDate).year
             self.month = parser.parse(self.publishedDate).month
             self.day = parser.parse(self.publishedDate).day
@@ -251,7 +255,7 @@ class IaWorker(object):
         item = ia.get_item(urandom(16).encode("hex"))
         return item
         
-    @retry(logger = log)
+    @retry(logger = log, backoff = 2, tries = 4)
     @ia_online(logger = log)
     def upload_to_IA(self, library, Id): 
         """Upload book to IA with appropriate metadata."""
@@ -459,11 +463,12 @@ def manager(q_mass_worker):
                 log.write("%s  Metadata Error, library:%s, ID:%s, status:%s\n" %(datetime.now(), 'gb', book_id, metadata_status) )
                 log.flush()
                 continue
-                        
+        """ 
         ia_identifier_found = ia_w.check_in_IA(ia_w.library, ia_w.Id)
         if ia_identifier_found is not False:
             ia_w.save_ia_identifier(ia_identifier_found)
             continue  
+	"""
         if not os.path.isfile(ia_w.pdf_path):
             download_status = gb.download_book(ia_w.Id)
             if download_status != 0:
