@@ -86,7 +86,6 @@ def verify_id(Id_string):
     book_key = "%s:%s:%s" %(redis_key3, 'usp', Id_string)
     library_url_key = book_key + ":library_url"
     url = "http://gallica.bnf.fr/%s" %(Id)
-    print url
    
     try:
         r = requests.get(url)

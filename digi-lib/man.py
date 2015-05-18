@@ -52,22 +52,16 @@ def verify_id(url):
     (link_type, link) = get_link_and_type(url)
     if link_type == 'wildcard':
         if '(*)' not in link[0]:
-            print "1"
             return 1
         try:
             r = requests.head(re.sub('\(\*\)', str(link[1]), link[0]))
         except:
-            print "2"
             return 1
         if r.status_code == 404:
-            print "3"
             return 1
         if r.status_code != 200:
             return 10
         if 'image' not in r.headers['content-type']:
-            print r.url
-            print r.headers
-            print "4"
             return 1
     elif link_type == 'pdf':
         try:
@@ -81,7 +75,6 @@ def verify_id(url):
         if 'pdf' not in r.headers['content-type']:
             return 1
     else:
-        print "5"
         return 1
     return 0
         

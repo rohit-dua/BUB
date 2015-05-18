@@ -134,7 +134,6 @@ def download_image_to_file(image_url, output_file):
     r = requests.get(image_url, stream=True)
     if r.status_code == 200:
         image_type = r.headers['content-type']
-	print image_type
         if image_type == 'image/jpeg':
             image_ext = 'jpeg'
         else:
