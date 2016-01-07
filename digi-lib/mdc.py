@@ -186,7 +186,7 @@ def store_output_file_name(Id, output_file):
     redis_key3 = keys.redis_key3
     book_key = redis_key3+":mdc:%s" %Id
     output_file_key = book_key + ":output_file"
-    redis.set(output_file_key, output_file)
+    redis_py.set(output_file_key, output_file, True)
 
 
 def extract_downloadURL(tld, soup):
@@ -223,7 +223,7 @@ def download_book(Id):
             tld = tld[:-1]
         pdf_url = "http://mdc.cbuc.cat/utils/getfile/collection/%s/id/%s/filename/1.pdf" %(collection, identifier)
         pdf = requests.get(pdf_url, stream=True)
-        output_file = "./downloads/bub_mdc_%s.pdf" %Id ###
+        output_file = "/data/scratch/BUB_downloads/bub_mdc_%s.pdf" %Id ###
         store_output_file_name(Id, output_file) 
         with open(output_file, 'wb') as f:
             for chunk in pdf.iter_content(1024):  
@@ -236,17 +236,17 @@ def download_book(Id):
     for page_no in range(0, total_pages):
         image_url = "http://mdc.cbuc.cat/utils/ajaxhelper/?CISOROOT=%s&CISOPTR=%s"\
         "&action=2&DMSCALE=100&DMWIDTH=5000&DMHEIGHT=5000&DMX=0&DMY=0&DMTEXT=&DMROTATE=0" %(collection, start_page_no + page_no)
-        output_file =  add_serial_number_to_name("./downloads/mdc_%s_" %Id, page_no)
+        output_file =  add_serial_number_to_name("/data/scratch/BUB_downloads/mdc_%s_" %Id, page_no)
         status = download_image_to_file(image_url, output_file)
         print "Downloaded %s,"%output_file
 	if status == 1:
 	    return 1
     final_output_file = "./downloads/bub_mdc_%s_images.tar" %Id
-    command = "tar -cf %s --directory=./downloads $(ls ./downloads/mdc_%s_*| xargs -n1 basename)" %(final_output_file, Id)
+    command = "tar -cf %s --directory=/data/scratch/BUB_downloads/ $(ls /data/scratch/BUB_downloads/mdc_%s_*| xargs -n1 basename)" %(final_output_file, Id)
     status = subprocess.check_call(command, shell=True)
     store_output_file_name(Id, final_output_file)
     if status == 0:
-        command = "rm ./downloads/mdc_%s_*" %(Id)
+        command = "rm /data/scratch/BUB_downloads/mdc_%s_*" %(Id)
         status = subprocess.check_call(command, shell=True)
     return 0
 

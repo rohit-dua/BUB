@@ -51,7 +51,7 @@ def verify_id(url):
     """Verify the Id and public-domain status for the book"""   
     (link_type, link) = get_link_and_type(url)
     if link_type == 'wildcard':
-        if '(*)' not in link[0]:
+        if '(*)' not in link[0]: 
             return 1
         try:
             r = requests.head(re.sub('\(\*\)', str(link[1]), link[0]))
@@ -120,7 +120,7 @@ def store_output_file_name(Id, output_file):
     redis_key3 = keys.redis_key3
     book_key = redis_key3+":man:%s" %Id
     output_file_key = book_key + ":output_file"
-    redis.set(output_file_key, output_file)
+    redis_py.set(output_file_key, output_file, True)
     
     
 def download_book(url):  
@@ -131,17 +131,17 @@ def download_book(url):
         no_of_pages = int(link[2])+1 - int(link[1])
         for page_no in range(0, no_of_pages):
             image_url = re.sub('\(\*\)', str(int(link[1]) + page_no).zfill(len(link[1])) , link[0])
-            output_file =  add_serial_number_to_name("./downloads/man_%s_" %Id, page_no+1)
+            output_file =  add_serial_number_to_name("/data/scratch/BUB_downloads/man_%s_" %Id, page_no+1)
             download_image_to_file(image_url, output_file)
-        final_output_file = "./downloads/bub_man_%s_images.tar" %Id   
-        command = "tar -cf %s --directory=./downloads $(ls ./downloads/man_%s_*| xargs -n1 basename)" %(final_output_file, Id)
+        final_output_file = "/data/scratch/BUB_downloads/bub_man_%s_images.tar" %Id   
+        command = "tar -cf %s --directory=/data/scratch/BUB_downloads/ $(ls /data/scratch/BUB_downloads/man_%s_*| xargs -n1 basename)" %(final_output_file, Id)
         status = subprocess.check_call(command, shell=True)
         if status == 0:
-            command = "rm ./downloads/man_%s_*" %(Id)
+            command = "rm /data/scratch/BUB_downloads/man_%s_*" %(Id)
             status = subprocess.check_call(command, shell=True)
     elif link_type == 'pdf':
         pdf = requests.get(link, stream=True)
-        final_output_file = "./downloads/bub_man_%s.pdf" %Id
+        final_output_file = "/data/scratch/BUB_downloads/bub_man_%s.pdf" %Id
         with open(final_output_file, 'wb') as f:
             for chunk in pdf.iter_content(1024):  
                 f.write(chunk)         

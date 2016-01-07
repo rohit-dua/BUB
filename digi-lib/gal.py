@@ -220,7 +220,7 @@ def store_output_file_name(Id, output_file):
     redis_key3 = keys.redis_key3
     book_key = redis_key3+":gal:%s" %Id
     output_file_key = book_key + ":output_file"
-    redis.set(output_file_key, output_file)
+    redis_py.set(output_file_key, output_file, True)
         
    
 def download_book(Id):  
@@ -232,16 +232,16 @@ def download_book(Id):
     s = requests.Session()
     for page_no in range(0, total_pages+1):
         image_url = "http://gallica.bnf.fr/%s/f%s.highres" %(Id_raw, start_page_no + page_no)
-        output_file =  add_serial_number_to_name("./downloads/gal_%s_" %Id, page_no)
+        output_file =  add_serial_number_to_name("/data/scratch/BUB_downloads/gal_%s_" %Id, page_no)
         status = download_image_to_file(image_url, output_file)
 	if status == 1:
 	    return 1
-    final_output_file = "./downloads/bub_gal_%s_images.tar" %Id
-    command = "tar -cf %s --directory=./downloads $(ls ./downloads/gal_%s_*| xargs -n1 basename)" %(final_output_file, Id)
+    final_output_file = "/data/scratch/BUB_downloads/bub_gal_%s_images.tar" %Id
+    command = "tar -cf %s --directory=/data/scratch/BUB_downloads/ $(ls /data/scratch/BUB_downloads/gal_%s_*| xargs -n1 basename)" %(final_output_file, Id)
     status = subprocess.check_call(command, shell=True)
     store_output_file_name(Id, final_output_file)
     if status == 0:
-        command = "rm ./downloads/gal_%s_*" %(Id)
+        command = "rm /data/scratch/BUB_downloads/gal_%s_*" %(Id)
         status = subprocess.check_call(command, shell=True)
     return 0
 

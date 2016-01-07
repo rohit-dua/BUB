@@ -155,10 +155,12 @@ def ia_online(f = None, delay=60, logger =None, check_overload = True):
 
 
 """Override requests.get method to include the retry wrapper defined above"""
+"""
 requests.__dict__["new_get"] = requests.__dict__["get"]
 @retry
 def new_get(*args, **kwargs):
     return requests.__dict__["new_get"](*args, **kwargs)
 requests.__dict__["get"] = new_get 
+"""
 
 

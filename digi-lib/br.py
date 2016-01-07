@@ -172,7 +172,7 @@ def store_output_file_name(Id, output_file):
     redis_key3 = keys.redis_key3
     book_key = redis_key3+":br:%s" %Id
     output_file_key = book_key + ":output_file"
-    redis.set(output_file_key, output_file)
+    redis_py.set(output_file_key, output_file, True)
 
 
 def download_book(Id):
@@ -182,7 +182,7 @@ def download_book(Id):
     source = r.text
     pdf_url = extract_downloadURL(source)
     pdf = requests.get(pdf_url, stream=True)
-    output_file = "./downloads/bub_br_%s.pdf" %Id ###
+    output_file = "/data/scratch/BUB_downloads/bub_br_%s.pdf" %Id ###
     store_output_file_name(Id, output_file) 
     with open(output_file, 'wb') as f:
         for chunk in pdf.iter_content(1024):  

@@ -31,7 +31,7 @@ def queue_key(index):
     return worker_queue_key  
 
 
-def get_id_from_another_worker(calling_worker_key, workers = 2):
+def get_id_from_another_worker(calling_worker_key, workers = 3):
     q_size_list = []
     q_list = []
     for i in range(1, workers+1):

@@ -107,7 +107,7 @@ class IaWorker(object):
         self.redis = redis_py.Redis()
         if  isinstance(value, (int, long, float, complex)):
             db = mysql_py.Db()
-            values = db.execute('select library, book_id from request where sno = %s;',value)
+            values = db.execute('select library, book_id from request where sno = %s;',value)[0]
             db.close()
             self.library = values[0]
             self.Id = values[1].encode('utf-8')
@@ -125,8 +125,8 @@ class IaWorker(object):
         else:
             self.redis_output_file_key = "%s:%s:%s:output_file" %(redis_key3, self.library, hashlib.md5(self.Id).hexdigest())
         self.library_name = bridge.lib_module(self.library)[1]           
-        metadata_key = self.book_key + ":metadata"
-        metadata = self.redis.get(metadata_key)
+        metadata_key = self.book_key + ":meta_data"
+        metadata = redis_py.get(metadata_key, True)
         info = json.loads(metadata)      
         try:
             self.title = info['title'].encode("utf-8") + " " + info['subtitle'].encode("utf-8")
@@ -158,12 +158,12 @@ class IaWorker(object):
             self.language = lang_code(language_code)
         except:
             self.language = ""
-        self.pdf_path = "./downloads/bub_%s_%s.pdf" %(self.library, self.Id)
+        self.pdf_path = "/data/scratch/BUB_downloads/bub_%s_%s.pdf" %(self.library, self.Id)
         self.scanner = info['scanner'] 
         self.sponser = info['sponser']        
         
         
-    @retry(backoff = 2, logger = log)
+    #@retry(backoff = 2, logger = log)
     @ia_online(logger = log)
     def check_in_IA(self, library, Id):
         """Check if book present in IA.
@@ -177,7 +177,7 @@ class IaWorker(object):
             numFound = 20
         if numFound == 0:
 	    ia_response_key = self.book_key + ":ia_response"
-	    self.redis.set(ia_response_key, 0)
+	    redis_py.set(ia_response_key, 0, True)
             return False
         match_list = []
         year_present = 0
@@ -232,13 +232,13 @@ class IaWorker(object):
             match_list.append(ia_info['response']['docs'][i]['identifier'])                     
         if match_list != []:
             ia_response_key = self.book_key + ":ia_response"
-            self.redis.set(ia_response_key, 1)
+            redis_py.set(ia_response_key, 1, True)
             return match_list
         ia_response_key = self.book_key + ":ia_response"
-        self.redis.set(ia_response_key, 0) 
+        redis_py.set(ia_response_key, 0, True) 
         return False    
     
-    @retry(tries = 4, delay = 5, logger = log, backoff = 2)
+    #@retry(tries = 4, delay = 5, logger = log, backoff = 2)
     @ia_online(logger = log)
     def get_valid_identifier(self, primary = True):
         """Iterate over identifiers suffixed by _<no>, until found."""
@@ -280,7 +280,7 @@ class IaWorker(object):
             sponsor = self.sponser,
             uploader = "bub")
         metadata['google-id'] = self.Id if self.library == 'gb' else ""
-        filename = self.redis.get(self.redis_output_file_key)
+        filename = redis_py.get(self.redis_output_file_key, True)
         S3_access_key = keys.S3_access_key
         S3_secret_key = keys.S3_secret_key
         try:
@@ -302,7 +302,7 @@ class IaWorker(object):
         redis_key3 = keys.redis_key3
         key_ia_identifier = self.book_key + ":ia_identifier"      
         value = json.dumps(value)
-        self.redis.set(key_ia_identifier, value) 
+        redis_py.set(key_ia_identifier, value, True) 
 
     def submit_OCR_wait_job(self, value):
         """Add book-request to OCR-waitlist queue"""     
@@ -340,7 +340,7 @@ def manager(q):
                 continue
         else:
             ia_response_key = ia_w.book_key + ":ia_response"
-            ia_w.redis.set(ia_response_key, 3)       
+            redis_py.set(ia_response_key, 3, True)       
         if not os.path.isfile(ia_w.pdf_path):
             download_status = bridge.download_book(ia_w.library, ia_w.Id)
             if download_status != 0:
@@ -348,11 +348,11 @@ def manager(q):
                 log.flush()
                 continue
         download_progress_key = ia_w.book_key + ":download_progress"
-        ia_w.redis.set(download_progress_key, 1)   
+        redis_py.set(download_progress_key, 1, True)   
         upload_status = ia_w.upload_to_IA(ia_w.library, ia_w.Id)
         if str(upload_status) == "[<Response [200]>]":
             upload_progress_key = ia_w.book_key + ":upload_progress"
-            ia_w.redis.set(upload_progress_key, 1)
+            redis_py.set(upload_progress_key, 1, True)
             ia_w.submit_OCR_wait_job(ia_w.ia_identifier)
         ia_w.redis.delete(ia_w.redis_key3+":ongoing_job_identifier")            
         

@@ -28,7 +28,7 @@ import difflib
 import os.path
 from os import urandom
 import re
-#import requests  --  imported from retry (with retry wrapper)
+#import requests  #--  imported from retry (with retry wrapper)
 import time
 from urllib import quote_plus
 import subprocess
@@ -135,7 +135,7 @@ class IaWorker(object):
             return error_status
         info = metadata
         metadata = json.dumps(metadata)
-        self.redis.set(metadata_key, metadata)                  
+        redis_py.set(metadata_key, metadata, True)  
         try:
             self.title = info['title'].encode("utf-8") + " " + info['subtitle'].encode("utf-8")
         except:
@@ -161,8 +161,8 @@ class IaWorker(object):
             self.language = lang_code(language_code)
         except:
             self.language = ""
-        self.pdf_path = "./downloads/bub_%s_%s.pdf" %(self.library, self.Id)
-        self.scanner = info['scanner'] 
+        self.pdf_path = "/data/scratch/BUB_downloads/bub_%s_%s.pdf" %(self.library, self.Id)
+	self.scanner = info['scanner'] 
         self.sponser = info['sponser']  
         return 0      
         
@@ -180,7 +180,7 @@ class IaWorker(object):
             numFound = 20
         if numFound == 0:
 	    ia_response_key = self.book_key + ":ia_response"
-	    self.redis.set(ia_response_key, 0)
+	    redis_py.set(ia_response_key, 0, True)
             return False
         match_list = []
         year_present = 0
@@ -233,10 +233,10 @@ class IaWorker(object):
             match_list.append(ia_info['response']['docs'][i]['identifier'])                     
         if match_list != []:
             ia_response_key = self.book_key + ":ia_response"
-            self.redis.set(ia_response_key, 1)
+            redis_py.set(ia_response_key, 1, True)
             return match_list
         ia_response_key = self.book_key + ":ia_response"
-        self.redis.set(ia_response_key, 0) 
+        redis_py.set(ia_response_key, 0, True) 
         return False    
     
     @retry(tries = 2, delay = 5, logger = log)
@@ -264,7 +264,7 @@ class IaWorker(object):
             self.ia_identifier = item.identifier
         else:
             item = ia.get_item(self.ia_identifier)
-        language_from_input = self.redis.get(self.book_key + ":language")
+        language_from_input = redis_py.get(self.book_key + ":language", True)
         metadata = dict(
             mediatype = "text",
             creator = self.author,
@@ -281,7 +281,7 @@ class IaWorker(object):
             sponsor = self.sponser,
             uploader = "bub")
         metadata['google-id'] = self.Id if self.library == 'gb' else ""
-        filename = self.redis.get(self.redis_output_file_key)
+        filename = redis_py.get(self.redis_output_file_key, True)
         S3_access_key = keys.S3_access_key
         S3_secret_key = keys.S3_secret_key
         try:
@@ -303,11 +303,11 @@ class IaWorker(object):
         redis_key3 = keys.redis_key3
         key_ia_identifier = self.book_key + ":ia_identifier"      
         value = json.dumps(value)
-        self.redis.set(key_ia_identifier, value)     
+        redis_py.set(key_ia_identifier, value, True)     
 
     def stored_copy_check(self):
         """Check if book already uploaded by the tool."""
-        if self.redis.get(self.book_key + ":upload_progress") == '1':
+        if redis_py.get(self.book_key + ":upload_progress", True) == '1':
             return True  
         else:
             return None
@@ -400,7 +400,7 @@ def wait_and_add_to_queue(q_bulk_order):
             book_id = gb.get_id_from_string(book_id)
             book_key = "%s:%s:%s" %(redis_key3, library_id, book_id)
             book_language_key  = book_key + ":language"
-            redis.set(book_language_key, language)
+            redis_py.set(book_language_key, language, True)
             q_mass_worker.add(book_id)    
         q_mass_worker.add( json.dumps((email, no)) )
         bulk_order_log.write("%s  Received %s entries from %s\n" %(datetime.now(), no, email))        
@@ -416,6 +416,7 @@ def ping_db(db):
     return db
 
 
+@retry(backoff = 2, logger = log)
 def manager(q_mass_worker):
       db = mysql_py.Db()
       while True:
@@ -442,8 +443,8 @@ def manager(q_mass_worker):
             continue
         db = ping_db(db)     
         md5_book = hashlib.md5(ia_w.Id + ia_w.library).hexdigest()
-        redundancy_book = db.execute("select count(*) from request where md5_book='%s' and confirmed=1 and job_submitted=1;",md5_book)
-        if redundancy_book[0] != 0:
+        redundancy_book = db.execute("select count(*) from request where md5_book=%s and confirmed=1 and job_submitted=1;",md5_book)
+        if redundancy_book[0][0] != 0:
             continue       
         metadata_status = ia_w.set_metadata()
         if isinstance(metadata_status, (int, long, float, complex)):
@@ -476,22 +477,34 @@ def manager(q_mass_worker):
                 log.flush()
                 continue
         download_progress_key = ia_w.book_key + ":download_progress"
-        ia_w.redis.set(download_progress_key, 1)   
+        redis_py.set(download_progress_key, 1, True)   
         upload_status = ia_w.upload_to_IA(ia_w.library, ia_w.Id)
         if str(upload_status) == "[<Response [200]>]":
             upload_progress_key = ia_w.book_key + ":upload_progress"
-            ia_w.redis.set(upload_progress_key, 1)
+            redis_py.set(upload_progress_key, 1, True)
             ia_w.save_ia_identifier(ia_w.ia_identifier)
             
         
 def main():
+    global mass_worker_key, __worker_name
+    mass_worker_no = sys.argv[1]
+    if mass_worker_no == '1' or mass_worker_no == None:
+        mass_worker_key = keys.redis_key4 + ":mass_worker"
+        __worker_name = "Mass Worker #1"
+    elif mass_worker_no == '2':
+        mass_worker_key = keys.redis_key4 + ":mass_worker_2"
+        __worker_name = "Mass Worker #2"
+    elif mass_worker_no == '3':
+        mass_worker_key = keys.redis_key4 + ":mass_worker_3"
+        __worker_name = "Mass Worker #3"        
     log.write("%s  Started %s\n" %(datetime.now(), __worker_name) )
     log.flush()
-    redis_key4 = keys.redis_key4  
+    redis_key4 = keys.redis_key4 
     q_mass_worker = QueueHandler(mass_worker_key)
-    q_bulk_order = QueueHandler(redis_key4)  
-    p = Process(target = wait_and_add_to_queue, args=(q_bulk_order,))      #Process spawn
-    p.start()
+    if mass_worker_no == '1' or mass_worker_no == None:
+        q_bulk_order = QueueHandler(redis_key4)  
+        p = Process(target = wait_and_add_to_queue, args=(q_bulk_order,))      #Process spawn
+        p.start()
     manager(q_mass_worker)            
         
         

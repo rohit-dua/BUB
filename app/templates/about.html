@@ -23,7 +23,7 @@
               <li>{{ library.name }}</li>
             {% endfor %}
           </ul>
-          <a href='https://archive.org/search.php?query=subject%3A%22bub_upload%22&sort=-publicdate'>Click here to view files uploaded to archive by BuB.</a>
+	  <a href='https://archive.org/search.php?query=subject%3A%22bub_upload%22&sort=-publicdate'>Click here to view files uploaded to archive by BuB.</a><b id="uploaded_no"></b>
           <br><br>
           <h4 class="media-heading">Usage:</h4>
           <ol>
@@ -44,5 +44,13 @@
     </div>
   </div>
 </div>
-
+<script>
+function callback(data){
+	document.getElementById("uploaded_no").innerHTML=" ("+data.response.numFound+" uploaded and counting...)";
+}
+var script = document.createElement("script");
+script.type = "text/javascript";
+script.src = "https://archive.org/advancedsearch.php?q=subject%3A%22bub_upload%22&rows=0&page=0&output=json&callback=callback";
+document.getElementsByTagName('head')[0].appendChild(script);
+</script>
 {% endblock %}

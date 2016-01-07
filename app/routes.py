@@ -79,6 +79,21 @@ libraries = [
 def render_template(text, **kwargs):
     return minify(rt(text, **kwargs), css = False)
 
+def reset_book_progress(library, ia_identifier):
+    r= redis_py.Redis()
+    redis_key3 = keys.redis_key3
+    book_key = "%s:%s:%s" %(redis_key3, library, ia_identifier)
+    download_progress_key = book_key + ":download_progress"
+    upload_progress_key = book_key + ":upload_progress"
+    ia_response_key = book_key + ":ia_response"
+    OCR_progress_key = book_key + ":OCR_progress"
+    email_progress_key = book_key + ":email_progress"
+    r.delete(download_progress_key)
+    r.delete(upload_progress_key)
+    r.delete(ia_response_key)
+    r.delete(OCR_progress_key)
+    r.delete(email_progress_key)
+
 
 def store_request(book, uuid):
     """Store uuid(hash value) and other parameters to Db"""
@@ -115,10 +130,21 @@ def submit_job(stored_request):
     if redis.exists(book_request_key):
         locked = Lock.acquire(timeout = 60)          
     request = dict(sno = stored_request.sno, email = stored_request.email)
-    redis.sadd(book_request_key, json.dumps(request))
+    redis_py.sadd(book_request_key, json.dumps(request),request_cache= True)
     redundant_request = models.Request.query.filter_by(md5_book=stored_request.md5_book,confirmed=1,job_submitted=1).first()
     if redundant_request == None:
-        q.add(stored_request.sno)
+	reset_book_progress(stored_request.library, stored_request.book_id)
+        md5_book = hashlib.md5(stored_request.book_id + stored_request.library).hexdigest()
+        library_url_key = book_key + ":library_url"
+        library_url = redis_py.get(library_url_key, True)
+        metadata_key = book_key + ":meta_data"
+        meta_data = redis_py.get(metadata_key, True)
+        book = models.Book(book_id=stored_request.book_id, library=stored_request.library, 
+            md5_book=stored_request.md5_book, connected_request_sno=stored_request.sno, requests=json.dumps(request),
+            library_url=library_url, meta_data=meta_data)
+        db.session.add(book)
+	#db.session.commit()        
+	q.add(stored_request.sno)
         stored_request.job_submitted = 1
 	db.session.commit()
         q_global_job.add(json.dumps(dict(library = stored_request.library, book_id = stored_request.book_id)))
@@ -132,10 +158,10 @@ def store_book_metadata(library_id, book_id, sno):
     book_metadata = bridge.book_info(library_id, book_id)
     redis_key3 = keys.redis_key3
     book_key = "%s:%s:%s" %(redis_key3, library_id, book_id)
-    metadata_key = book_key + ":metadata"
+    metadata_key = book_key + ":meta_data"
     sno_key = book_key + ":sno"
-    redis.set(metadata_key, json.dumps(book_metadata) )
-    redis.set(sno_key, json.dumps(sno) )
+    redis_py.set(metadata_key, json.dumps(book_metadata), True )
+    redis_py.set(sno_key, json.dumps(sno), True )
     library_url_key = book_key + ":library_url"
     redis.expire(library_url_key, 60*60*60)
 
@@ -155,7 +181,7 @@ def index():
             redis_key3 = keys.redis_key3
             book_key = "%s:%s:%s" %(redis_key3, form.library_id.data, book_id)
             library_url_key = book_key + ":library_url"
-            redis.set(library_url_key, form.book_id.data)
+            redis_py.set(library_url_key, form.book_id.data, True)
             redis.expire(library_url_key, 60*15)
             verification_status_no = book.verify_fields()
             if verification_status_no != 0:
@@ -270,11 +296,17 @@ def manual():
             redis_key3 = keys.redis_key3
             redis_key1 = keys.redis_key1
             book_key = "%s:%s:%s" %(redis_key3, library, ia_identifier_suffix)
-            metadata_key = book_key + ":metadata"
-            redis.set(metadata_key, json.dumps(book_metadata) )           
+            metadata_key = book_key + ":meta_data"
+            redis_py.set(metadata_key, json.dumps(book_metadata), True )           
             book_request_key = book_key + ":requests"  
             request_details = dict(email = email)
-            redis.sadd(book_request_key, json.dumps(request_details))
+            redis_py.sadd(book_request_key, json.dumps(request_details), request_cache=True)
+            md5_book = hashlib.md5(ia_identifier_suffix + library).hexdigest()
+	    meta_data = json.dumps(book_metadata)
+            book = models.Book(book_id=ia_identifier_suffix, library=library, 
+	    	requests=json.dumps(request_details), meta_data=meta_data, md5_book=md5_book)
+            db.session.add(book)
+            db.session.commit()
             q_global_job = redis_py.Queue(redis_key1+"global")        
             q_global_job.add(json.dumps(dict(library = library, book_id = ia_identifier_suffix)))
             q = redis_py.Queue(redis_key1)
@@ -323,10 +355,11 @@ def progress(book_id):
     redis = redis_py.Redis()
     redis_key3 = keys.redis_key3
     redis_key1 = keys.redis_key1
-    q = redis_py.Queue(redis_key1)
+    q_global_job = redis_py.Queue(redis_key1+"global")
     book_key = "%s:%s" %(redis_key3, book_id)
-    metadata_key = book_key + ":metadata"
-    metadata = redis.get(metadata_key)
+    library = book_id.split(':')[0]
+    metadata_key = book_key + ":meta_data"
+    metadata = redis_py.get(metadata_key, True)
     if metadata == None:
         abort(404)
     metadata = json.loads(metadata)
@@ -337,42 +370,44 @@ def progress(book_id):
             subtitle = metadata['title']
     progress = dict()
     ia_response_key = book_key + ":ia_response"
-    ia_response = redis.get(ia_response_key)
+    ia_response = redis_py.get(ia_response_key, True)
     ia_response = int(ia_response) if ia_response else None
     progress.update( dict(ia_response = ia_response))
     download_progress_key = book_key + ":download_progress"
-    download_progress = redis.get(download_progress_key) if ia_response == 0 or ia_response == 3 else None
+    download_progress = redis_py.get(download_progress_key, True) if ia_response == 0 or ia_response == 3 else None
     download_progress = int(download_progress) if download_progress else None
     progress.update( dict(download_progress = download_progress))
     upload_progress_key = book_key + ":upload_progress"
-    upload_progress = redis.get(upload_progress_key) if ia_response == 0 or ia_response == 3 else None
+    upload_progress = redis_py.get(upload_progress_key, True) if ia_response == 0 or ia_response == 3 else None
     upload_progress = int(upload_progress) if upload_progress else None
     progress.update( dict(upload_progress = upload_progress))
     ia_identifier_key = book_key + ":ia_identifier" 
     try:
-        ia_identifier = json.loads(redis.get(ia_identifier_key))
+        ia_identifier = json.loads(redis_py.get(ia_identifier_key, True))
         ia_link = "http://archive.org/details/%s" %ia_identifier if ia_identifier else ""
         progress.update( dict(ia_link = ia_link))
         progress.update( dict(ia_identifier = ia_identifier))
     except ValueError:
-        ia_identifier = redis.get(ia_identifier_key)
+        ia_identifier = redis_py.get(ia_identifier_key, True)
         ia_link = "http://archive.org/details/%s" %ia_identifier if ia_identifier else ""
         progress.update( dict(ia_link = ia_link))
         progress.update( dict(ia_identifier = ia_identifier))
     except:
         pass
+    ia_identifier_suffix = book_id.split(':')[-1]
     OCR_progress_key = book_key + ":OCR_progress"
-    OCR_progress = redis.get(OCR_progress_key) if ia_response == 0 or ia_response == 3 else None
+    OCR_progress = redis_py.get(OCR_progress_key, True) if ia_response == 0 or ia_response == 3 else None
     OCR_progress = int(OCR_progress) if OCR_progress else None
     progress.update( dict(OCR_progress = OCR_progress))
     email_progress_key = book_key + ":email_progress"
-    email_progress = redis.get(email_progress_key)
+    email_progress = redis_py.get(email_progress_key, True)
     email_progress = int(email_progress) if email_progress else None
     progress.update( dict(email_progress = email_progress))
     sno_key = book_key + ":sno"
-    sno = redis.get(sno_key)
+    sno = redis_py.get(sno_key, True)
     sno = int(sno) if sno else None
-    progress.update( dict(queue_index = q.index(sno)))
+    global_queue_key = json.dumps(dict(library = library, book_id = ia_identifier_suffix))
+    progress.update( dict(queue_index = q_global_job.index(global_queue_key)))
     progress.update( dict(percent_complete = percent_complete(ia_response, download_progress, upload_progress, OCR_progress)))
     auto_refresh = auto_refresh_time(ia_response)
     return render_template("progress.html", subtitle = subtitle, book_info = metadata, progress = progress, auto_refresh = auto_refresh, request = request, book_id = book_id)
@@ -391,7 +426,7 @@ def queue(number_of_entries = 100):
     redis_key3 = keys.redis_key3
     q_global_job = redis_py.Queue(redis_key1+"global")
     redis = redis_py.Redis()
-    queue = q_global_job.pop(number_of_entries)
+    queue = q_global_job.pop(int(number_of_entries))
     total_OCR_waiting = 0
     total_waiting_to_run = 0
     currently_running = 0
@@ -400,8 +435,8 @@ def queue(number_of_entries = 100):
         for index,item in enumerate(queue):
             item = json.loads(item)
             queue[index] = item
-            upload_progress = redis.get("%s:%s:%s:upload_progress" %(redis_key3, item['library'], item['book_id']))
-            OCR_progress = redis.get("%s:%s:%s:OCR_progress" %(redis_key3, item['library'], item['book_id']))
+            upload_progress = redis_py.get("%s:%s:%s:upload_progress" %(redis_key3, item['library'], item['book_id']), True)
+            OCR_progress = redis_py.get("%s:%s:%s:OCR_progress" %(redis_key3, item['library'], item['book_id']), True)
             if upload_progress == '1' and OCR_progress != '1':
                 queue[index].update(OCR_waiting = 1)
                 total_OCR_waiting += 1
@@ -534,14 +569,17 @@ def reupload(book_id, email = "", key = ""):
         ia_identifier_suffix = get_valid_identifier_suffix(library, Id)
         redis = redis_py.Redis()
         redis_key3 = keys.redis_key3
-        book_metadata = redis.get(redis_key3+":"+book_id+":metadata")
+        book_metadata = redis_py.get(redis_key3+":"+book_id+":meta_data", True)
         book_key = "%s:%s:%s" %(redis_key3, library, ia_identifier_suffix)
-        metadata_key = book_key + ":metadata"
+        metadata_key = book_key + ":meta_data"
         book_request_key = book_key + ":requests"
-        redis.set(metadata_key, book_metadata )   
+        redis_py.set(metadata_key, book_metadata, True )   
         request = dict(email = email)
-        redis.sadd(book_request_key, json.dumps(request))   
-        redis_key1 = keys.redis_key1
+        redis_py.sadd(book_request_key, json.dumps(request), request_cache=True)   
+        book = models.Book(book_id=ia_identifier_suffix, library=library, requests=json.dumps(request), meta_data=book_metadata)
+        db.session.add(book)
+        db.session.commit()
+	redis_key1 = keys.redis_key1
         q_global_job = redis_py.Queue(redis_key1+"global")        
         q_global_job.add(json.dumps(dict(library = library, book_id = ia_identifier_suffix)))
         q = redis_py.Queue(redis_key1)

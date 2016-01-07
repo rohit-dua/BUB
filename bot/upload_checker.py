@@ -58,7 +58,18 @@ def remove_from_db(users_request):
             db.execute(command, sno)
     db.close() 
         
-        
+
+def remove_request_db(users_request, book_key):
+    """Remove database entry of the users request"""
+    db = mysql_py.Db()
+    params = book_key.split(":")
+    book_id = params[2]
+    library = params[1]
+    for u in users_request:
+        command = "delete from global_request where data = %s and book_id = %s and library = %s;"
+        db.execute(command, u, book_id, library)
+
+
 def send_email(users_request, ia_identifier, book_key = None):
     """Send notification email to all requests associated with
     a book."""
@@ -129,16 +140,17 @@ def check_if_upload_ready():
             ia_identifier = json.loads(ia_identifier)
             if isinstance(ia_identifier, list):
                 Lock.acquire(timeout = 60*2)
-                users_request = redis.smembers(book_key + ":requests")
+                users_request = redis_py.smembers(book_key + ":requests", True)
                 if users_request != None:
                     redis.delete( book_key + ":requests")
+                    remove_request_db(users_request, book_key)
 		    remove_from_db(users_request)
                 Lock.release()            
                 q.remove(book_key)
                 if users_request != None:
                     send_email( users_request, ia_identifier, book_key = book_key )                
                 email_progress_key = book_key + ":email_progress" 
-                redis.set(email_progress_key, 1) 
+                redis_py.set(email_progress_key, 1, True) 
 		delete_from_global_queue(book_key)
                 continue
             else:    
@@ -151,19 +163,20 @@ def check_if_upload_ready():
                     uploaded = 1
                 if uploaded != 0:
                     Lock.acquire(timeout = 60*2)
-                    users_request = redis.smembers(book_key + ":requests")
+                    users_request = redis_py.smembers(book_key + ":requests", True)
                     if users_request != None:
                         redis.delete( book_key + ":requests")
+                        remove_request_db(users_request, book_key)
                         remove_from_db(users_request)
                     Lock.release()
                     q.remove(book_key)
                     if users_request != None:
                         send_email( users_request, str(ia_identifier) )
                     email_progress_key = book_key + ":email_progress" 
-                    redis.set(email_progress_key, 1) 
+                    redis_py.set(email_progress_key, 1, True) 
                     delete_from_global_queue(book_key)
                     OCR_progress_key = book_key + ":OCR_progress"
-                    redis.set(OCR_progress_key, 1)          
+                    redis_py.set(OCR_progress_key, 1, True)          
                 else:
                     continue
         time.sleep(2)

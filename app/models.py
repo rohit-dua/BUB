@@ -32,3 +32,23 @@ class Request(db.Model):
     md5_book = db.Column(db.String(100), nullable=False)
     md5_uuid = db.Column(db.String(100), nullable=False)
     timestamp = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+
+class Book(db.Model):
+    sno = db.Column(db.Integer, primary_key = True)
+    book_id = db.Column(db.String(150), nullable=False)
+    library = db.Column(db.String(40), nullable=False)
+    md5_book = db.Column(db.String(100))
+    connected_request_sno = db.Column(db.String(255))
+    library_url = db.Column(db.String(150))
+    meta_data = db.Column(db.String(65535))
+    output_file = db.Column(db.String(100))
+    language = db.Column(db.String(40))
+    ia_response = db.Column(db.String(11))
+    download_progress = db.Column(db.Integer)
+    upload_progress = db.Column(db.Integer)
+    email_progress = db.Column(db.Integer)
+    ocr_progress = db.Column(db.Integer)
+    timestamp = db.Column(db.DateTime, default=db.func.current_timestamp())
+    requests = db.Column(db.String(255))
+

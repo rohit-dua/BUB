@@ -26,7 +26,7 @@ import inspect
 import time
 import urllib
 #import requests # --  imported from retry (with retry wrapper)
-from PIL import Image
+#from PIL import Image
 
 import binascii
 
@@ -83,13 +83,14 @@ def verify_id(Id_string):
         else:
             return 0
 
-@retry(delay = 2)
+#@retry(delay = 2)
 def metadata(Id):
     """Return book information and meta-data"""
     Id = get_id_from_string(Id)
-    r = requests.get('https://www.googleapis.com/books/v1/volumes/%s?key=%s' %(Id, key), headers={'referer': "tools.wmflabs.org/bub"} )
+    url = 'https://www.googleapis.com/books/v1/volumes/%s?key=%s' %(Id, key)
+    r = requests.get(url, headers={'referer': "tools.wmflabs.org/bub"} )
     if r.status_code == 404:
-	return 1
+        return 1
     if r.status_code == 403:
         return 7
     if r.status_code != 200:
@@ -113,25 +114,24 @@ def metadata(Id):
         language = book_info['volumeInfo']['language'] if 'language' in book_info['volumeInfo'].keys() else "",
         scanner = "google",
         sponser = "Google"   
-    )
-            
+    )            
             
 def get_image_url_from_page(html):
     """Get image url from page html."""
     match = re.search("preloadImg.src = '([^']*?)'", html)
     return match.group(1) 
 
-
+"""
 def verify_image(output_file):
     v_image = Image.open(output_file)
     v_image.verify() 
-
+"""
 
 @retry(delay = 2, logger = log, backoff = 2, tries = 4)
 def download_image_to_file(image_url, output_file):
     """Download image from url"""  
     image_url = reformat_content(image_url)
-    r = requests.get(image_url, stream=True)
+    r = requests.get(image_url, stream=True, verify=False)
     if r.status_code == 200:
         image_type = r.headers['content-type']
         if image_type == 'image/jpeg':
@@ -143,7 +143,7 @@ def download_image_to_file(image_url, output_file):
         with open(output_file, 'wb') as f:
             for chunk in r.iter_content(1024):
                 f.write(chunk)
-        verify_image(output_file)
+	#verify_image(output_file)
         
 
 def add_serial_number_to_name(output_file, sno):
@@ -162,13 +162,13 @@ def store_output_file_name(Id, output_file):
     output_file_key = book_key + ":output_file"
     redis.set(output_file_key, output_file)
 
-@retry(logger = log, delay = 2, backoff = 2, tries = 5) 
+#@retry(logger = log, delay = 2, backoff = 2, tries = 5) 
 def download_book(Id):  
     """Download book images from GB and tar them to one file"""   
     s = requests.Session()
     Id = get_id_from_string(Id)
     cover_url = "http://books.google.com/books?id=%s&hl=en&printsec=frontcover" % Id
-    cover_html = s.get(cover_url).text
+    cover_html = s.get(cover_url, verify=False).text
     match = re.search(r'_OC_Run\((.*?)\);', cover_html)
     oc_run_args = json.loads("[%s]" %(match.group(1)))
     pages_info = oc_run_args[0]
@@ -182,14 +182,14 @@ def download_book(Id):
         image_url = re.sub('w=\d+','w=2500',image_url)
 	#image_url = re.sub('w\\\\x\d+','w=2500' ,image_url)
         image_url = re.sub('w\\\\x3d\d+','w\\x3d2500' ,image_url)
-        output_file =  add_serial_number_to_name("./downloads/gb_%s_" %Id, page_no+1)
+        output_file =  add_serial_number_to_name("/data/scratch/BUB_downloads/gb_%s_" %Id, page_no+1)
         download_image_to_file(image_url, output_file)
-    final_output_file = "./downloads/bub_gb_%s_images.tar" %Id
-    command = "tar -cf %s --directory=./downloads $(ls ./downloads/gb_%s_*| xargs -n1 basename)" %(final_output_file, Id)
+    final_output_file = "/data/scratch/BUB_downloads/bub_gb_%s_images.tar" %Id
+    command = "tar -cf %s --directory=/data/scratch/BUB_downloads/ $(ls /data/scratch/BUB_downloads/gb_%s_*| xargs -n1 basename)" %(final_output_file, Id)
     status = subprocess.check_call(command, shell=True)
     store_output_file_name(Id, final_output_file)
     if status == 0:
-        command = "rm ./downloads/gb_%s_*" %(Id)
+        command = "rm /data/scratch/BUB_downloads/gb_%s_*" %(Id)
         status = subprocess.check_call(command, shell=True)
     return 0
     

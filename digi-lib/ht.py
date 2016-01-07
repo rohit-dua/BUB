@@ -213,7 +213,7 @@ def store_output_file_name(Id, output_file):
     redis_key3 = keys.redis_key3
     book_key = redis_key3+":ht:%s" %Id
     output_file_key = book_key + ":output_file"
-    redis.set(output_file_key, output_file)
+    redis_py.set(output_file_key, output_file, True)
 
 
 def get_id_from_record_key(Id):
@@ -233,16 +233,16 @@ def download_book(Id):
     for page_no in range(1, total_pages+1):
         image_url = "https://babel.hathitrust.org/cgi/htd/volume/pageimage/%s/%s"%(Id_key, page_no)
         #output_file = "./downloads/ht_%s_%s." %(Id, page_no)
-        output_file =  add_serial_number_to_name("./downloads/ht_%s_" %Id, page_no)
+        output_file =  add_serial_number_to_name("/data/scratch/BUB_downloads/ht_%s_" %Id, page_no)
         status = download_image_to_file(image_url, output_file)
 	if status == 1:
 	    return 1
     final_output_file = "./downloads/bub_ht_%s_images.tar" %Id
-    command = "tar -cf %s --directory=./downloads $(ls ./downloads/ht_%s_*| xargs -n1 basename)" %(final_output_file, Id)
+    command = "tar -cf %s --directory=/data/scratch/BUB_downloads/ $(ls /data/scratch/BUB_downloads/ht_%s_*| xargs -n1 basename)" %(final_output_file, Id)
     status = subprocess.check_call(command, shell=True)
     store_output_file_name(Id, final_output_file)
     if status == 0:
-        command = "rm ./downloads/ht_%s_*" %(Id)
+        command = "rm /data/scratch/BUB_downloads/ht_%s_*" %(Id)
         status = subprocess.check_call(command, shell=True)
     return 0        
 

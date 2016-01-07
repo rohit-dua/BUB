@@ -98,7 +98,7 @@ def verify_id(Id_string):
     redis_key3 = keys.redis_key3
     book_key = "%s:%s:%s" %(redis_key3, 'usp', Id_string)
     library_url_key = book_key + ":library_url"
-    url = redis.get(library_url_key)
+    url = redis_py.get(library_url_key, True)
     url = get_absolute_url_of_book(url)
     
    
@@ -155,7 +155,7 @@ def metadata(Id):
     redis_key3 = keys.redis_key3
     book_key = "%s:%s:%s" %(redis_key3, 'usp', Id)
     library_url_key = book_key + ":library_url"
-    url = redis.get(library_url_key)
+    url = redis_py.get(library_url_key, True)
     url = get_absolute_url_of_book(url)    
     try:
         r = requests.get(url)
@@ -198,7 +198,7 @@ def store_output_file_name(Id, output_file):
     redis_key3 = keys.redis_key3
     book_key = redis_key3+":usp:%s" %Id
     output_file_key = book_key + ":output_file"
-    redis.set(output_file_key, output_file)    
+    redis_py.set(output_file_key, output_file, True)    
 
 
 def download_book(Id): 
@@ -206,7 +206,7 @@ def download_book(Id):
     redis_key3 = keys.redis_key3
     book_key = "%s:%s:%s" %(redis_key3, 'usp', Id)
     library_url_key = book_key + ":library_url"
-    url = redis.get(library_url_key)
+    url = redis_py.get(library_url_key, True)
     url = get_absolute_url_of_book(url)    
     r = requests.get(url)
     source = r.text
@@ -218,7 +218,7 @@ def download_book(Id):
     if pdf_url in ("", None):
         return 1
     pdf = requests.get(pdf_url, stream=True)
-    output_file = "./downloads/bub_usp_%s.pdf" %Id ###
+    output_file = "/data/scratch/BUB_downloads/bub_usp_%s.pdf" %Id ###
     store_output_file_name(Id, output_file)
     with open(output_file, 'wb') as f:
         for chunk in pdf.iter_content(1024):  

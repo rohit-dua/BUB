@@ -74,3 +74,21 @@ admin_password = __settings['admin']
 hathitrust_api_access_key = __settings['hathi_trust']['access_key']
 hathitrust_api_secret_key = __settings['hathi_trust']['secret_key']
 
+
+def get_queue_table_name(key):
+	if key==redis_key1:
+		return "single_worker_job_queue"
+	elif key==redis_key1+"global":
+		return "global_job_queue"
+	elif key==redis_key2:
+		return "ocr_job_queue"
+	elif key==redis_key4:
+		return "bulk_order_queue"
+	elif key=="%s:mass_worker" %(redis_key4):
+		return "mass_worker_job_queue1"
+	elif key=="%s:mass_worker_2" %(redis_key4):
+		return "mass_worker_job_queue2"
+	elif key=="%s:mass_worker_3" %(redis_key4):
+		return "mass_worker_job_queue3"
+	else:
+		return None

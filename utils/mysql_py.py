@@ -30,17 +30,24 @@ class Db(object):
         db_password = keys.db_password
         db_database = keys.db_database
         self.database = MySQLdb.connect(db_host, db_username, db_password, db_database, use_unicode=True, charset="utf8");
-        self.cursor = self.database.cursor()
+        self.database.autocommit(True)
+	self.cursor = self.database.cursor()
         
     def execute(self, command, *args):
         """Execute MySQL command, return result if required."""
+        try:
+            self.cursor.execute("select 1;")   
+            self.cursor.fetchone()
+        except:
+            self.__init__()
+
         try:    
-            self.cursor.execute(command % args)
+            self.cursor.execute(command, args)
             if command[:6].lower() != 'select':
                 self.database.commit()
             else: 
-                data = self.cursor.fetchone()
-		return data
+                data = self.cursor.fetchall()
+		return [x for x in data]
         except: 
             if self.database:
                 status = self.database.rollback()
