@@ -61,7 +61,7 @@ def get(key, book_cache=False):
         if len(key_elements) > 2:
             library = key_elements[1]
             ia_identifier = key_elements[2]
-            column_type = key_elements[3]
+            column_type = key_elements[3].lower()
             if column_type == 'sno':
                 column_type = 'connected_request_sno'
         else:
@@ -86,12 +86,12 @@ def set(key, value, book_cache=False):
         if len(key_elements) > 2:
             library = key_elements[1]
             ia_identifier = key_elements[2]
-            column_type = key_elements[3]
+            column_type = key_elements[3].lower()
             if column_type == 'sno':
                 column_type = 'connected_request_sno'
         else:
             return None
-        db.execute("update book set "+column_type+" = %s where book_key = %s and library = %s", value, ia_identifier, library)
+        db.execute("update book set "+column_type+" = %s where book_id = %s and library = %s", value, ia_identifier, library)
 
 
 def sadd(key, value, request_cache=True):

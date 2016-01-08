@@ -114,16 +114,18 @@ class IaWorker(object):
             self.book_key = "%s:%s:%s" %(redis_key3, self.library, self.Id) 
             self.redis.set(redis_key3+":ongoing_job_identifier", self.Id)
             self.ia_identifier = None
+	    id_for_key = self.Id
         else:
             self.library = value['library']
             self.Id = value['Id']
             self.ia_identifier = "bub_" + self.library + "_" + value['ia_identifier_suffix']
             self.book_key = "%s:%s:%s" %(redis_key3, self.library, value['ia_identifier_suffix']) 
             self.redis.set(redis_key3+":ongoing_job_identifier", value['ia_identifier_suffix'])
+	    id_for_key = value['ia_identifier_suffix']
         if '/' not in self.Id:
-            self.redis_output_file_key = "%s:%s:%s:output_file" %(redis_key3, self.library, self.Id)
+            self.redis_output_file_key = "%s:%s:%s:output_file" %(redis_key3, self.library, id_for_key)
         else:
-            self.redis_output_file_key = "%s:%s:%s:output_file" %(redis_key3, self.library, hashlib.md5(self.Id).hexdigest())
+            self.redis_output_file_key = "%s:%s:%s:output_file" %(redis_key3, self.library, hashlib.md5(id_for_key).hexdigest())
         self.library_name = bridge.lib_module(self.library)[1]           
         metadata_key = self.book_key + ":meta_data"
         metadata = redis_py.get(metadata_key, True)

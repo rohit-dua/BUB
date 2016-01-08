@@ -567,6 +567,7 @@ def reupload(book_id, email = "", key = ""):
         library = book_values.group(1)
         Id = book_values.group(2)
         ia_identifier_suffix = get_valid_identifier_suffix(library, Id)
+	reset_book_progress(library, ia_identifier_suffix)
         redis = redis_py.Redis()
         redis_key3 = keys.redis_key3
         book_metadata = redis_py.get(redis_key3+":"+book_id+":meta_data", True)
@@ -574,7 +575,7 @@ def reupload(book_id, email = "", key = ""):
         metadata_key = book_key + ":meta_data"
         book_request_key = book_key + ":requests"
         redis_py.set(metadata_key, book_metadata, True )   
-        request = dict(email = email)
+        request = dict(email = form.email.data)
         redis_py.sadd(book_request_key, json.dumps(request), request_cache=True)   
         book = models.Book(book_id=ia_identifier_suffix, library=library, requests=json.dumps(request), meta_data=book_metadata)
         db.session.add(book)
