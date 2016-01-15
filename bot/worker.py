@@ -36,6 +36,7 @@ import hashlib
 import internetarchive as ia
 
 sys.path.append('../utils')
+sys.path.append('./utils')
 import redis_py
 import mysql_py
 import keys
@@ -114,18 +115,18 @@ class IaWorker(object):
             self.book_key = "%s:%s:%s" %(redis_key3, self.library, self.Id) 
             self.redis.set(redis_key3+":ongoing_job_identifier", self.Id)
             self.ia_identifier = None
-	    id_for_key = self.Id
+	    self.id_for_key = self.Id
         else:
             self.library = value['library']
             self.Id = value['Id']
             self.ia_identifier = "bub_" + self.library + "_" + value['ia_identifier_suffix']
             self.book_key = "%s:%s:%s" %(redis_key3, self.library, value['ia_identifier_suffix']) 
             self.redis.set(redis_key3+":ongoing_job_identifier", value['ia_identifier_suffix'])
-	    id_for_key = value['ia_identifier_suffix']
-        if '/' not in self.Id:
-            self.redis_output_file_key = "%s:%s:%s:output_file" %(redis_key3, self.library, id_for_key)
+	    self.id_for_key = value['ia_identifier_suffix']
+        if '/' not in self.id_for_key:
+            self.redis_output_file_key = "%s:%s:%s:output_file" %(redis_key3, self.library, self.id_for_key)
         else:
-            self.redis_output_file_key = "%s:%s:%s:output_file" %(redis_key3, self.library, hashlib.md5(id_for_key).hexdigest())
+            self.redis_output_file_key = "%s:%s:%s:output_file" %(redis_key3, self.library, hashlib.md5(self.id_for_key).hexdigest())
         self.library_name = bridge.lib_module(self.library)[1]           
         metadata_key = self.book_key + ":meta_data"
         metadata = redis_py.get(metadata_key, True)
@@ -244,11 +245,15 @@ class IaWorker(object):
     @ia_online(logger = log)
     def get_valid_identifier(self, primary = True):
         """Iterate over identifiers suffixed by _<no>, until found."""
-        item = ia.get_item("%s_%s_%s" %('bub', self.library, self.Id))
+        if self.ia_identifier:
+            ia_key = self.ia_identifier
+        else:
+            ia_key = "%s_%s_%s" %('bub', self.library, self.Id)
+        item = ia.get_item(ia_key)
         if item.exists == False and primary == True:
             return item
         for index in range(2,10):
-            item = ia.get_item("%s_%s_%s_%s" %('bub', self.library, self.Id, index))
+            item = ia.get_item("%s_%s" %(ia_key, index))
             if item.identifier == self.ia_identifier:
                 continue
             if item.exists == False:
@@ -257,7 +262,7 @@ class IaWorker(object):
         return item
         
         
-    @retry(logger = log, backoff = 2)
+    #@retry(logger = log, backoff = 2)
     @ia_online(logger = log)
     def upload_to_IA(self, library, Id): 
         """Upload book to IA with appropriate metadata."""
@@ -344,7 +349,7 @@ def manager(q):
             ia_response_key = ia_w.book_key + ":ia_response"
             redis_py.set(ia_response_key, 3, True)       
         if not os.path.isfile(ia_w.pdf_path):
-            download_status = bridge.download_book(ia_w.library, ia_w.Id)
+            download_status = bridge.download_book(ia_w.library, ia_w.Id, ia_w.id_for_key)
             if download_status != 0:
                 log.write("%s  Download Error, library:%s, ID:%s\n" %(datetime.now(), ia_w.library, ia_w.Id) )
                 log.flush()

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/data/project/bub/public_html/BUB/flask/bin/python
 # -*- coding: utf-8 -*-
 
 # This program is free software: you can redistribute it and/or modify
@@ -163,8 +163,10 @@ def store_output_file_name(Id, output_file):
     redis.set(output_file_key, output_file)
 
 #@retry(logger = log, delay = 2, backoff = 2, tries = 5) 
-def download_book(Id):  
-    """Download book images from GB and tar them to one file"""   
+def download_book(Id, id_for_key=None):  
+    """Download book images from GB and tar them to one file"""  
+    if id_for_key==None:
+	id_for_key=Id
     s = requests.Session()
     Id = get_id_from_string(Id)
     cover_url = "http://books.google.com/books?id=%s&hl=en&printsec=frontcover" % Id
@@ -187,7 +189,7 @@ def download_book(Id):
     final_output_file = "/data/scratch/BUB_downloads/bub_gb_%s_images.tar" %Id
     command = "tar -cf %s --directory=/data/scratch/BUB_downloads/ $(ls /data/scratch/BUB_downloads/gb_%s_*| xargs -n1 basename)" %(final_output_file, Id)
     status = subprocess.check_call(command, shell=True)
-    store_output_file_name(Id, final_output_file)
+    store_output_file_name(id_for_key, final_output_file)
     if status == 0:
         command = "rm /data/scratch/BUB_downloads/gb_%s_*" %(Id)
         status = subprocess.check_call(command, shell=True)

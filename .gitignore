@@ -1,0 +1,5 @@
+*.pyc
+*.log
+app/static/bootstrap/
+app/static/fonts/
+app/static/images/

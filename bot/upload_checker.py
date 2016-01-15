@@ -79,7 +79,7 @@ def send_email(users_request, ia_identifier, book_key = None):
         if email in (None, ""):
             continue
         msg = MIMEMultipart('alternative')
-        msg['From'] = "tools.bub@tools.wmflabs.org"
+        msg['From'] = "Book Uploader Bot<tools.bub@tools.wmflabs.org>"
         msg['To'] = email 
         html_template_data = open('./templates/email.html', 'r') 
         html_template = Template(html_template_data.read())

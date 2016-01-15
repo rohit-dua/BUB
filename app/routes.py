@@ -35,14 +35,17 @@ from validate_email import validate_email
 from internetarchive import get_item
 from tld import get_tld
  
-from utils import redis_py, keys
+from utils import redis_py, keys, mysql_py
 from utils.minify import minify
 import bridge
 
 sys.path.append('./utils')
+sys.path.append('../utils')
 from minify import minify
 from retry import retry, ia_online
 
+
+d = mysql_py.Db()
 
 libraries = [
         dict(
@@ -93,6 +96,7 @@ def reset_book_progress(library, ia_identifier):
     r.delete(ia_response_key)
     r.delete(OCR_progress_key)
     r.delete(email_progress_key)
+    d.execute("delete from book where email_progress=1 and library=%s and book_id=%s;", library, ia_identifier)
 
 
 def store_request(book, uuid):

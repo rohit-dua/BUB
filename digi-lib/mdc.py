@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/data/project/bub/public_html/BUB/flask/bin/python
 # -*- coding: utf-8 -*-
 
 # This program is free software: you can redistribute it and/or modify
@@ -207,7 +207,7 @@ def extract_base_domain(url):
         return ""
         
    
-def download_book(Id):  
+def download_book(Id, id_for_key):  
     """Download book images from HathiTrust and tar them to one file"""   
     Id = get_id_from_string(Id)
     unique_id = re.search('(.+)_(\d+)', Id)
@@ -244,7 +244,7 @@ def download_book(Id):
     final_output_file = "./downloads/bub_mdc_%s_images.tar" %Id
     command = "tar -cf %s --directory=/data/scratch/BUB_downloads/ $(ls /data/scratch/BUB_downloads/mdc_%s_*| xargs -n1 basename)" %(final_output_file, Id)
     status = subprocess.check_call(command, shell=True)
-    store_output_file_name(Id, final_output_file)
+    store_output_file_name(id_for_key, final_output_file)
     if status == 0:
         command = "rm /data/scratch/BUB_downloads/mdc_%s_*" %(Id)
         status = subprocess.check_call(command, shell=True)

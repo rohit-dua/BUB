@@ -53,14 +53,18 @@ def book_info(library_id, book_Id):
     return lib_imported.metadata(book_Id)
         
 
-def download_book(library, Id):
+def download_book(library, Id, id_for_key=None):
     """Call download method for the Id, from the specified library"""
     lib_module_name = str(lib_module(library)[0])
     if lib_module_name is not 'None':
         lib_imported = importlib.import_module(lib_module_name) 
     else:
         return None   
-    return lib_imported.download_book(Id)   
+    if id_for_key==None:
+	return_id=Id
+    else:
+	return_id=id_for_key
+    return lib_imported.download_book(Id, return_id)   
 
         
 class fields(object):

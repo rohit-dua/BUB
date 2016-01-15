@@ -53,8 +53,6 @@ import gb
 
 gb.key = keys.google_books_key2
 redis_key4 = keys.redis_key4  
-mass_worker_key = redis_key4 + ":mass_worker"
-__worker_name = "Mass Worker #1"
 
 
 log = open('mass_worker.log', 'a')
@@ -282,6 +280,7 @@ class IaWorker(object):
             uploader = "bub")
         metadata['google-id'] = self.Id if self.library == 'gb' else ""
         filename = redis_py.get(self.redis_output_file_key, True)
+	self.filename = filename
         S3_access_key = keys.S3_access_key
         S3_secret_key = keys.S3_secret_key
         try:
@@ -354,7 +353,7 @@ class QueueHandler(object):
         while item is False:
             item = self.queue.pop()
             if item != False:
-                self.Lock.acquire()
+                self.Lock.acquire(30)
                 self.queue.remove(item[0])
                 self.Lock.release()
             if item is False:
@@ -385,6 +384,7 @@ def get_shortest_queue(workers = 3):
 def wait_and_add_to_queue(q_bulk_order):
     """Parse Id's from bulk-order queue(accepts requests from web) entry and add to mass-worker queue."""
     log.write("%s  Started wait_and_add_to_queue\n" %datetime.now())
+    log.flush()
     while True:
         info = json.loads(q_bulk_order.pop_and_remove())
         ids = info[0]
@@ -478,16 +478,25 @@ def manager(q_mass_worker):
                 continue
         download_progress_key = ia_w.book_key + ":download_progress"
         redis_py.set(download_progress_key, 1, True)   
-        upload_status = ia_w.upload_to_IA(ia_w.library, ia_w.Id)
-        if str(upload_status) == "[<Response [200]>]":
-            upload_progress_key = ia_w.book_key + ":upload_progress"
-            redis_py.set(upload_progress_key, 1, True)
-            ia_w.save_ia_identifier(ia_w.ia_identifier)
+        try:
+            upload_status = ia_w.upload_to_IA(ia_w.library, ia_w.Id)
+            if str(upload_status) == "[<Response [200]>]":
+                upload_progress_key = ia_w.book_key + ":upload_progress"
+                redis_py.set(upload_progress_key, 1, True)
+                ia_w.save_ia_identifier(ia_w.ia_identifier)
+        except:
+            filename = ia_w.filename
+            command = "rm %s" %(filename)
+            try:
+                subprocess.check_call(command, shell=True)     
+            except:
+                log.write("%s  Command rm %s failed" %(datetime.now(), filename))
+                log.flush()
             
         
 def main():
     global mass_worker_key, __worker_name
-    mass_worker_no = sys.argv[1]
+    mass_worker_no = sys.argv[1] if len(sys.argv)>1 else None
     if mass_worker_no == '1' or mass_worker_no == None:
         mass_worker_key = keys.redis_key4 + ":mass_worker"
         __worker_name = "Mass Worker #1"

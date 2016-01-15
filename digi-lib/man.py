@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/data/project/bub/public_html/BUB/flask/bin/python
 # -*- coding: utf-8 -*-
 
 # This program is free software: you can redistribute it and/or modify
@@ -123,7 +123,7 @@ def store_output_file_name(Id, output_file):
     redis_py.set(output_file_key, output_file, True)
     
     
-def download_book(url):  
+def download_book(url, id_for_key):  
     """Download book images from GB and tar them to one file"""   
     (link_type, link) = get_link_and_type(url)
     Id = hashlib.md5(url).hexdigest()

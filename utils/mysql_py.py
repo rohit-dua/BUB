@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/data/project/bub/public_html/BUB/flask/bin/python
 # -*- coding: utf-8 -*-
 
 # This program is free software: you can redistribute it and/or modify
@@ -25,11 +25,11 @@ import keys
     
 class Db(object):
     def __init__(self):
-        db_host = keys.db_host
-        db_username = keys.db_username
-        db_password = keys.db_password
-        db_database = keys.db_database
-        self.database = MySQLdb.connect(db_host, db_username, db_password, db_database, use_unicode=True, charset="utf8");
+        self.db_host = keys.db_host
+        self.db_username = keys.db_username
+        self.db_password = keys.db_password
+        self.db_database = keys.db_database
+        self.database = MySQLdb.connect(self.db_host, self.db_username, self.db_password, self.db_database, use_unicode=True, charset="utf8");
         self.database.autocommit(True)
 	self.cursor = self.database.cursor()
         
@@ -39,7 +39,9 @@ class Db(object):
             self.cursor.execute("select 1;")   
             self.cursor.fetchone()
         except:
-            self.__init__()
+	     self.database = MySQLdb.connect(self.db_host, self.db_username, self.db_password, self.db_database, use_unicode=True, charset="utf8");
+             self.database.autocommit(True)
+	     self.cursor = self.database.cursor()
 
         try:    
             self.cursor.execute(command, args)
@@ -51,7 +53,7 @@ class Db(object):
         except: 
             if self.database:
                 status = self.database.rollback()
-                return status    
+                return status   
             
     def close(self):
         """Close the database"""

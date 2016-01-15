@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/data/project/bub/public_html/BUB/flask/bin/python
 # -*- coding: utf-8 -*-
 
 # This program is free software: you can redistribute it and/or modify
@@ -23,7 +23,7 @@ from datetime import datetime
 from functools import wraps
 import sys
 import requests
-      
+requests.packages.urllib3.disable_warnings() 
       
 def retry(f = None, ExceptionToCheck = None, tries=3, delay=1, backoff = 1, logger=None, stdout = False):
       """Retry decorator"""

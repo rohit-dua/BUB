@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/data/project/bub/public_html/BUB/flask/bin/python
 # -*- coding: utf-8 -*-
 
 # This program is free software: you can redistribute it and/or modify
@@ -201,7 +201,7 @@ def store_output_file_name(Id, output_file):
     redis_py.set(output_file_key, output_file, True)    
 
 
-def download_book(Id): 
+def download_book(Id, id_for_key): 
     redis = redis_py.Redis()
     redis_key3 = keys.redis_key3
     book_key = "%s:%s:%s" %(redis_key3, 'usp', Id)
@@ -219,7 +219,7 @@ def download_book(Id):
         return 1
     pdf = requests.get(pdf_url, stream=True)
     output_file = "/data/scratch/BUB_downloads/bub_usp_%s.pdf" %Id ###
-    store_output_file_name(Id, output_file)
+    store_output_file_name(id_for_key, output_file)
     with open(output_file, 'wb') as f:
         for chunk in pdf.iter_content(1024):  
             f.write(chunk)  
