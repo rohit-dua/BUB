@@ -134,7 +134,7 @@ class IaWorker(object):
         try:
             self.title = info['title'].encode("utf-8") + " " + info['subtitle'].encode("utf-8")
         except:
-            self.title = str(info['title']) + " " + str(info['subtitle']) 
+            self.title = str(info['title'].encode("utf-8")) + " " + str(info['subtitle']) 
         self.author = info['author'].encode("utf-8")
         self.publisher = info['publisher'].encode("utf-8")
         self.description = info['description'].replace("\n", "").encode("utf-8")
@@ -172,7 +172,7 @@ class IaWorker(object):
         """Check if book present in IA.
         Return False if not present else Return Identifier(s)"""
         
-        url="""http://archive.org/advancedsearch.php?q=title%%3A(%s)+AND+mediatype%%3A(texts)&fl[]=creator&fl[]=source&fl[]=date&fl[]=identifier&fl[]=language&fl[]=publisher&fl[]=title&sort[]=&sort[]=&sort[]=&rows=20&page=1&output=json""" % quote_plus(re.sub(r"""[!#\n|^\\\"~()\[\]:\-]""", '', self.title)[:330])  
+        url="""http://archive.org/advancedsearch.php?q=title%%3A(%s)+AND+mediatype%%3A(texts)&fl[]=creator&fl[]=source&fl[]=date&fl[]=identifier&fl[]=language&fl[]=publisher&fl[]=title&sort[]=&sort[]=&sort[]=&rows=20&page=1&output=json""" % quote_plus(re.sub(r"""[!#\n|^\\\"~()\[\]:\-/]""", '', self.title)[:330])  
         r = requests.get(url)
         ia_info = r.json()
         numFound = int(ia_info['response']['numFound'])
@@ -274,9 +274,9 @@ class IaWorker(object):
         metadata = dict(
             mediatype = "text",
             creator = self.author,
-            title = re.sub(r"""[!#\n\r|^\\\"~()\[\]:\-]""",'',self.title)[:330],
+            title = re.sub(r"""[!#\n\r|^\\\"~()\[\]:\-/]""",'',self.title)[:330],
             publisher = self.publisher,
-            description = re.sub(r"""[!#\n\r|^\\\"~()\[\]:\-]""",'',self.description),
+            description = re.sub(r"""[!#\n\r|^\\\"~()\[\]:\-/]""",'',self.description),
             source = self.infoLink,
             language = self.language,
             year = self.year,

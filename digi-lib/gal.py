@@ -74,7 +74,22 @@ def get_id_from_string(s, action = 'sanitize'):
     return Id
     
        
+def OAI_metadata_content(name, soup, burst=False):
+    """Extract and return the specified meta-tags value"""
+    meta_value = soup.findAll('meta', attrs=dict(name=name))
+    if meta_value != []:
+        if burst:
+            return [m.get('content') for m in meta_value]
+        else:
+            return meta_value[0].get('content')
+    else:
+        if burst:
+            return []
+        else:
+            return ""
 
+
+           
 
 def verify_id(Id_string): 
     """Verify the Id and public-domain status for the book"""
@@ -83,10 +98,9 @@ def verify_id(Id_string):
         return 1
     redis = redis_py.Redis()
     redis_key3 = keys.redis_key3
-    book_key = "%s:%s:%s" %(redis_key3, 'usp', Id_string)
+    book_key = "%s:%s:%s" %(redis_key3, 'gal', Id_string)
     library_url_key = book_key + ":library_url"
     url = "http://gallica.bnf.fr/%s" %(Id)
-   
     try:
         r = requests.get(url)
     except:
@@ -98,87 +112,54 @@ def verify_id(Id_string):
     else:
         source = r.text
         soup = BeautifulSoup(source)
-        strong_attr = soup.findAll('strong')
-        for i in strong_attr:
-            public_domain = get_metadata(i, specific_tag = 'Droits')
-            if not public_domain:
+        rights= OAI_metadata_content("DC.rights", soup, burst=True)
+        for i in rights:
+            if not rights:
                 continue
-            if 'domaine public' in public_domain.encode('utf-8'):
+            if i.strip().lower().encode('utf-8') in ('domaine public', 'public domain'):
                 return 0               
         return 2
 
 
-def extract_thumbnail_url(soup, url):
-    """Exxtract and return thumbnail (from html source) url for the book"""
-    u = extract_base_domain(url)
-    meta_value = soup.findAll('img', attrs=dict(alt='Thumbnail'))
-    if meta_value != []:
-        for m in meta_value:
-            if '/handle/' in m.get('src'):
-                return u + m.get('src')
-        return ""
-    else:
-        return ""
-        
-def get_metadata(raw_attribute, metadata = None, specific_tag = None):
-    tags = ('Titre', 'Auteur', 'Éditeur', 'Date', 'Langue', 'Droits', 'Source')
-    for index, tag in enumerate(tags):
-        if specific_tag != None:
-            if specific_tag in raw_attribute.text.encode('utf-8'):
-                parent_attribute = raw_attribute.parent
-                return parent_attribute.contents[2]
-            else:
-                continue
-        if not raw_attribute.text:
-            continue
-        if tag in raw_attribute.text.encode('utf-8'):
-            parent_attribute = raw_attribute.parent
-            metadata[index] = unicode(parent_attribute.contents[2]) if len(parent_attribute.contents) >= 3 else ""
-            return 0
-            
-            
 def metadata(Id):
     """Return book information and meta-data"""
     redis = redis_py.Redis()
     redis_key3 = keys.redis_key3
     book_key = "%s:%s:%s" %(redis_key3, 'usp', Id)
     Id_raw = get_id_from_string(Id, action = 'desanitize')
+    Id_raw = Id_raw[:-1] if Id_raw[-1] == '/' else Id_raw
     library_url_key = book_key + ":library_url"
-    url = "http://gallica.bnf.fr/%s" %(Id_raw)   
+    url = "http://gallica.bnf.fr/%s" %(Id_raw) 
     try:
         r = requests.get(url)
     except:
         return 1
     if r.status_code == 404:
-	    return 1
+        return 1
     if r.status_code != 200:
         return 10
     else:
         source = r.text
         soup = BeautifulSoup(source)
-    thumbnail_url = 'http://gallica.bnf.fr/%s/f0.highres' %Id_raw       
-    strong_attr = soup.findAll('strong')
-    metadata_dict = dict()
-    for i in strong_attr:
-        get_metadata(i, metadata_dict)
+    thumbnail_url = 'http://gallica.bnf.fr/%s.thumbnail' %Id_raw       
+    source = r.text
+    soup = BeautifulSoup(source)
     return dict(
         image_url = thumbnail_url,
         thumbnail_url = thumbnail_url,
         printType = "BOOK",
-        title = metadata_dict[0] if metadata_dict[0] else "",
+        title = OAI_metadata_content("DC.title", soup),
         subtitle = "",
-        author = metadata_dict[1] if metadata_dict[1] else "",
-        publisher = metadata_dict[2] if metadata_dict[2] else "",
-        publishedDate = metadata_dict[3] if metadata_dict[3] else "",
-        description = "",
+        author = OAI_metadata_content("DC.creator", soup),
+        publisher = OAI_metadata_content("DC.publisher", soup),
+        publishedDate = OAI_metadata_content("DC.date", soup),
+        description = OAI_metadata_content("DC.description", soup),
         infoLink = url,
         publicDomain = True,
-        language = normalize_to_ascii(metadata_dict[4].strip()),
+        language = normalize_to_ascii(get_lang(source)),
         scanner = "Gallica",
         sponser = "Gallica"
     )
-
-
 
 from PIL import Image
 
@@ -246,11 +227,18 @@ def download_book(Id, id_for_key):
     return 0
 
  
+def get_lang(source):
+    l = re.findall("language.label.([\S]+) ", source)
+    if len(l)>0:
+        return l[0]
+    else:
+        return ""
+ 
 def extract_total_pages(Id_raw):
     r = requests.get('http://gallica.bnf.fr/%s' %Id_raw)
-    soup = BeautifulSoup(r.text)
-    data = soup.findAll('input', attrs={'id' : "size", 'name' : "size"})
-    if data == []:
-        return None
-    return int(data[0].get('value'))        
+    no= re.findall('Nombre total de vues : ([\d]+)',  r.text)
+    if len(no) >0:
+        return int(no[0])
+    else:
+        return None        
  

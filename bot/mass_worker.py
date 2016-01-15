@@ -170,7 +170,7 @@ class IaWorker(object):
         """Check if book present in IA.
         Return False if not present else Return Identifier(s)"""
         
-        url="""http://archive.org/advancedsearch.php?q=title%%3A(%s)+AND+mediatype%%3A(texts)&fl[]=creator&fl[]=source&fl[]=date&fl[]=identifier&fl[]=language&fl[]=publisher&fl[]=title&sort[]=&sort[]=&sort[]=&rows=20&page=1&output=json""" % quote_plus(re.sub(r"""[!#\n|^\\\"~()\[\]:\-]""", '', self.title)[:330]) 
+        url="""http://archive.org/advancedsearch.php?q=title%%3A(%s)+AND+mediatype%%3A(texts)&fl[]=creator&fl[]=source&fl[]=date&fl[]=identifier&fl[]=language&fl[]=publisher&fl[]=title&sort[]=&sort[]=&sort[]=&rows=20&page=1&output=json""" % quote_plus(re.sub(r"""[!#\n|^\\\"~()\[\]:\-/]""", '', self.title)[:330]) 
         r = requests.get(url)
         ia_info = r.json()
         numFound = int(ia_info['response']['numFound'])
@@ -266,9 +266,9 @@ class IaWorker(object):
         metadata = dict(
             mediatype = "text",
             creator = self.author,
-            title = re.sub(r"""[!#\n|^\\\"~()\[\]:\-]""",'',self.title)[:330],
+            title = re.sub(r"""[!#\n|^\\\"~()\[\]:\-/]""",'',self.title)[:330],
             publisher = self.publisher,
-            description = re.sub(r"""[!#\n|^\\\"~()\[\]:\-]""",'',self.description),
+            description = re.sub(r"""[!#\n|^\\\"~()\[\]:\-/]""",'',self.description),
             source = self.infoLink,
             language = self.language if language_from_input in (None, "") else language_from_input,
             year = self.year,
